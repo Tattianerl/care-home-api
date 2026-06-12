@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id    String @id @default(uuid())
+  nome  String
+  email String @unique
+  senha String
+  cargo String
+
+  assinatura String?
+
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  evolutions             Evolution[]
+  vitalSigns             VitalSign[]
+  medications            Medication[]
+  appointments           Appointment[]
+  nutritionalAssessments NutritionalAssessment[]
+
+  auditLogs AuditLog[]
+}
+
+model Patient {
+  id             String   @id @default(uuid())
+  nome           String
+  dataNascimento DateTime
+  responsavel    String
+  telefone       String
+
+  historicoMedico String?
+  medicamentos    String?
+  alergias        String?
+  diagnosticos    String?
+
+  observacoes String?
+
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  evolutions Evolution[]
+  documents  PatientDocument[]
+
+  vitalSigns             VitalSign[]
+  medications            Medication[]
+  appointments           Appointment[]
+  nutritionalAssessments NutritionalAssessment[]
+}
+
+model Evolution {
+  id         String   @id @default(uuid())
+  descricao  String
+  assinatura String?
+  createdAt  DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model PatientDocument {
+  id String @id @default(uuid())
+
+  nome    String
+  arquivo String
+
+  createdAt DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+}
+
+model VitalSign {
+  id                 String   @id @default(uuid())
+  pressao            String
+  temperatura        Float
+  glicemia           Float?
+  frequenciaCardiaca Int?
+  saturacao          Int?
+  observacoes        String?
+  createdAt          DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Medication {
+  id               String   @id @default(uuid())
+  nome             String
+  dosagem          String
+  frequencia       String
+  viaAdministracao String
+  observacoes      String?
+  createdAt        DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  titulo      String
+  dataHora    DateTime
+  observacoes String?
+  status      String   @default("agendado")
+  createdAt   DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model NutritionalAssessment {
+  id          String   @id @default(uuid())
+  peso        Float
+  altura      Float
+  imc         Float?
+  observacoes String?
+  createdAt   DateTime @default(now())
+
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id String @id @default(uuid())
+
+  acao       String
+  entidade   String
+  entidadeId String
+
+  descricao String?
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
