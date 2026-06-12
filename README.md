@@ -279,6 +279,13 @@ Este projeto foi desenvolvido como solução para gestão de pacientes em instit
 
 ---
 
+## API Online
+
+https://care-home-api-g6hq.onrender.com/
+## Swagger
+
+https://care-home-api-g6hq.onrender.com/docs/
+
 ## 👩‍💻 Desenvolvido por
 
 Tatiane Lima
