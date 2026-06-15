@@ -12,7 +12,12 @@ export const swaggerSpec = swaggerJsdoc({
 
     servers: [
       {
+        url: 'https://care-home-api-g6hq.onrender.com',
+        description: 'Servidor de Produção (Deploy)',
+      },
+      {
         url: "http://localhost:3333",
+        description: 'Servidor Local (Desenvolvimento)',
       },
     ],
 
