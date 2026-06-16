@@ -1,10 +1,17 @@
 import express from "express";
+import cors from "cors";
 import { authRoutes } from "./routes/auth.routes";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger";
 
 const app = express();
+
+app.use(cors({origin: [
+    "http://localhost:5173",
+   ],
+  })
+);
 
 app.use(
   "/docs",
