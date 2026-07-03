@@ -1,5 +1,4 @@
 import { Router } from "express";
-
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { RegisterController } from "../controllers/RegisterController";
 import { LoginController } from "../controllers/LoginController";
@@ -287,7 +286,6 @@ authRoutes.get(
   authMiddleware,
   listEvolutionsController.handle
 );
-
 
 /**
  * @swagger

@@ -20,7 +20,7 @@ export class DownloadPatientDocumentController {
     }
 
     const filePath = path.resolve(
-      __dirname,
+      process.cwd(),
       "..",
       "..",
       "uploads",
@@ -34,9 +34,6 @@ export class DownloadPatientDocumentController {
       });
     }
 
-    return response.download(
-      filePath,
-      document.nome
-    );
+    return response.download(filePath, `${document.nome}.pdf`);
   }
 }

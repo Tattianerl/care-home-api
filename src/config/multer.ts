@@ -3,12 +3,16 @@ import path from "path";
 
 export default {
   storage: multer.diskStorage({
-    destination: path.resolve(__dirname, "../../uploads"),
+    destination: path.resolve(process.cwd(), "../../uploads"),
 
     filename(request, file, callback) {
       const timestamp = Date.now();
 
-      callback(null, `${timestamp}-${file.originalname}`);
+      const safeName = file.originalname
+      .replace(/\s/g, "_")
+      .replace(/[^a-zA-Z0-9._-]/g, "");
+
+      callback(null, `${timestamp}-${safeName}`);
     },
   }),
 };
