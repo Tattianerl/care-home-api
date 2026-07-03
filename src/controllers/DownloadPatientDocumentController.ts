@@ -21,19 +21,20 @@ export class DownloadPatientDocumentController {
 
     const filePath = path.resolve(
       process.cwd(),
-      "..",
-      "..",
       "uploads",
       document.arquivo
     );
 
-    // Validação do arquivo físico
     if (!fs.existsSync(filePath)) {
       return response.status(404).json({
         error: "Arquivo físico não encontrado",
       });
     }
 
-    return response.download(filePath, `${document.nome}.pdf`);
+    const extension = path.extname(document.arquivo);
+
+    const downloadName = `${document.nome}${extension}`;
+
+    return response.download(filePath, downloadName);
   }
 }
