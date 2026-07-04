@@ -8,6 +8,7 @@ export class ListPatientDocumentsController {
     const documents = await prisma.patientDocument.findMany({
       where: {
         patientId,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: "desc",
