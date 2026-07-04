@@ -18,6 +18,7 @@ export class DownloadPatientDocumentController {
     console.log("Documento encontrado:", document);
 
     if (!document) {
+      console.log("Documento não encontrado no banco.");
       return response.status(404).json({
         error: "Documento não encontrado",
       });
@@ -38,9 +39,8 @@ export class DownloadPatientDocumentController {
       });
     }
 
-    const extension = path.extname(document.arquivo);
-    const downloadName = `${document.nome}${extension}`;
+    
 
-    return response.download(filePath, downloadName);
+    return response.download(filePath, document.arquivo);
   }
 }
