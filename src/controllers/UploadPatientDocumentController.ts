@@ -13,9 +13,14 @@ export class UploadPatientDocumentController {
     if (!file) {
       return response.status(400).json({ error: "Arquivo não enviado" });
     }
+    if (!nome) {
+      return response.status(400).json({
+        error: "Nome obrigatório",
+    });
+}
 
     const patientExists = await prisma.patient.findUnique({
-      where: { id: patientId },
+      where: { id: patientId, },
     });
 
     if (!patientExists) {
@@ -25,7 +30,7 @@ export class UploadPatientDocumentController {
     const fileExt = file.originalname.split(".").pop();
     const fileName = `${randomUUID()}.${fileExt}`;
 
-    // 🔥 UPLOAD PARA SUPABASE
+    // UPLOAD PARA SUPABASE
     const { error } = await supabase.storage
       .from("documents")
       .upload(fileName, file.buffer, {
@@ -49,4 +54,4 @@ export class UploadPatientDocumentController {
 
     return response.status(201).json(document);
   }
-}
+} 

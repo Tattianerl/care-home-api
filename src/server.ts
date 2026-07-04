@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import { authRoutes } from "./routes/auth.routes";
-import path from "path";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger";
 
@@ -20,12 +19,7 @@ app.use(
 );
 
 app.use(express.json());
-app.use(
-  "/files",
-  express.static(
-    path.resolve(__dirname, "../uploads")
-  )
-);
+
 app.use("/auth", authRoutes);
 
 app.get("/", (request, response) => {
