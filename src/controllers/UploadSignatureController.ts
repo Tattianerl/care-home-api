@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { supabase } from "../lib/supabase";
 
 export class UploadSignatureController {
   async handle(request: Request, response: Response) {
@@ -19,19 +20,33 @@ export class UploadSignatureController {
       });
     }
 
+    const fileName = `signatures/${Date.now()}-${file.originalname}`;
+
+    const { error } = await supabase.storage
+      .from("documents")
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) {
+      return response.status(500).json({
+        error: error.message,
+      });
+    }
+
     await prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        assinatura: file.filename,
+        assinatura: fileName,
       },
     });
 
     return response.status(200).json({
       message: "Assinatura enviada com sucesso",
-      assinatura: file.filename,
-      url: `http://localhost:3333/files/${file.filename}`,
+      assinatura: fileName,
     });
   }
 }

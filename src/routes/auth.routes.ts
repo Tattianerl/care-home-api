@@ -16,7 +16,7 @@ import { DeleteEvolutionController } from "../controllers/DeleteEvolutionControl
 import { DashboardController } from "../controllers/DashboardController";
 
 import multer from "multer";
-import multerConfig from "../config/multer";
+
 
 import { UploadController } from "../controllers/UploadController";
 import { roleMiddleware } from "../middlewares/roleMiddleware";
@@ -50,6 +50,7 @@ import { DashboardTodayController } from "../controllers/DashboardTodayControlle
 import { DownloadPatientDocumentController } from "../controllers/DownloadPatientDocumentController";
 import { ExportPatientsController } from "../controllers/ExportPatientsController";
 import { ExportAuditLogsController } from "../controllers/ExportAuditLogsController";
+import { upload } from "../config/multer";
 
 const authRoutes = Router();
 
@@ -67,7 +68,7 @@ const updateEvolutionController = new UpdateEvolutionController();
 const deleteEvolutionController = new DeleteEvolutionController();
 
 const dashboardController = new DashboardController();
-const upload = multer(multerConfig);
+
 const uploadController = new UploadController();
 const uploadPatientDocumentController = new UploadPatientDocumentController();
 
