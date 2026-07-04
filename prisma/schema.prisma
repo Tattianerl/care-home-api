@@ -76,6 +76,9 @@ model PatientDocument {
 
   createdAt DateTime @default(now())
 
+  deletedAt DateTime?
+  deletedBy String?
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 }

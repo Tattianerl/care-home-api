@@ -51,6 +51,7 @@ import { DownloadPatientDocumentController } from "../controllers/DownloadPatien
 import { ExportPatientsController } from "../controllers/ExportPatientsController";
 import { ExportAuditLogsController } from "../controllers/ExportAuditLogsController";
 import { upload } from "../config/multer";
+import { DeletePatientDocumentController } from "../controllers/DeletePatientDocumentController";
 
 const authRoutes = Router();
 
@@ -98,6 +99,8 @@ const patientTimelineController = new PatientTimelineController();
 const upcomingAppointmentsController = new UpcomingAppointmentsController();
 const dashboardTodayController = new DashboardTodayController();
 const downloadPatientDocumentController = new DownloadPatientDocumentController();
+const deletePatientDocumentController = new DeletePatientDocumentController();
+
 const exportPatientsController = new ExportPatientsController();
 const exportAuditLogsController = new ExportAuditLogsController();
 
@@ -1161,6 +1164,13 @@ authRoutes.get(
   "/export/patients",
   authMiddleware,
   exportPatientsController.handle
+);
+
+authRoutes.delete(
+  "/documents/:id", 
+  authMiddleware, 
+  roleMiddleware("admin"), 
+  deletePatientDocumentController.handle
 );
 
 authRoutes.get(
