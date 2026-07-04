@@ -6,11 +6,10 @@ import { swaggerSpec } from "./docs/swagger";
 
 const app = express();
 
-app.use(cors({origin: [
-    "http://localhost:5173",
-   ],
-  })
-);
+app.use(cors({
+  origin: "*", 
+  exposedHeaders: ["Content-Disposition"] // Libera o cabeçalho para o Axios ler o nome do arquivo
+}));
 
 app.use(
   "/docs",
