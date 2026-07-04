@@ -24,6 +24,8 @@ export class DownloadPatientDocumentController {
       });
     }
 
+    console.log("CWD DOWNLOAD:", process.cwd());
+
     const filePath = path.resolve(
       process.cwd(),
       "uploads",

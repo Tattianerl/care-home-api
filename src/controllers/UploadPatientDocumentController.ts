@@ -4,10 +4,10 @@ import { prisma } from "../lib/prisma";
 export class UploadPatientDocumentController {
   async handle(request: Request, response: Response) {
 
-    console.log("BODY:", request.body);
     console.log("FILE:", request.file);
-    console.log("HEADERS:", request.headers["content-type"]);
-
+    console.log("FILE PATH:", request.file?.path);
+    console.log("DESTINATION:", request.file?.destination);
+    
     const patientId = request.params.id as string;
 
     const { nome } = request.body;
