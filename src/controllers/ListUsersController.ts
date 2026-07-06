@@ -11,6 +11,7 @@ export class ListUsersController {
           nome: true,
           email: true,
           cargo: true,
+          ativo: true,
         },
         orderBy: {
           nome: "asc", 

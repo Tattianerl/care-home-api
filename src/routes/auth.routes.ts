@@ -55,6 +55,7 @@ import { DeletePatientDocumentController } from "../controllers/DeletePatientDoc
 import { ResetPasswordByAdminController } from "../controllers/ResetPasswordByAdminController";
 import { ListUsersController } from "../controllers/ListUsersController";
 import { UpdatePasswordController } from "../controllers/UpdatePasswordController";
+import { ToggleUserStatusController } from "../controllers/ToggleUserStatusController";
 
 const authRoutes = Router();
 
@@ -109,6 +110,7 @@ const exportAuditLogsController = new ExportAuditLogsController();
 const resetPasswordByAdminController = new ResetPasswordByAdminController();
 const listUsersController = new ListUsersController();
 const updatePasswordController = new UpdatePasswordController();
+const toggleUserStatusController = new ToggleUserStatusController();
 
 /**
  * @swagger
@@ -136,8 +138,8 @@ authRoutes.post("/login", loginController.handle);
 authRoutes.post("/register", registerController.handle);
 authRoutes.patch("/users/admin-reset-password", authMiddleware,resetPasswordByAdminController.handle);
 authRoutes.get("/users", authMiddleware, roleMiddleware("admin"), listUsersController.handle);
-authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
-
+authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);// Rota PATCH protegida por autenticação e restrita a administradores
+authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware("admin"), toggleUserStatusController.handle);
 
 /**
  * @swagger

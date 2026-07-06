@@ -20,6 +20,10 @@ export class LoginController {
       });
     }
 
+    if (!user.ativo) { 
+      return response.status(401).json({ error: "A sua conta foi desativada. Entre em contato com o administrador." });
+    }
+
     const senhaMatch = await compare(senha, user.senha);
 
     if (!senhaMatch) {

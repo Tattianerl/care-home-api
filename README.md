@@ -24,13 +24,16 @@ O sistema permite o cadastro de pacientes, controle de evoluções clínicas, si
 
 ## 📌 Funcionalidades
 
-### 👤 Usuários
+### 👤 Usuários & Gestão de Equipe
 
 * Cadastro de usuários
-* Login com JWT
-* Controle de permissões por cargo
+* Login com JWT e verificação de status ativo
+* Controle de permissões por cargo (`roleMiddleware`) com proteção de endpoints críticos
 * Upload de assinatura digital
 * Perfil do usuário autenticado
+* **[NOVO]** Alteração da própria senha por usuários autenticados
+* **[NOVO]** Reset de senha de funcionários gerenciado exclusivamente por Administradores
+* **[NOVO]** Desativação segura de funcionários (*Soft Delete* via campo `ativo`) para fins de desligamento/demissão, preservando o histórico clínico assinado por eles
 
 ### 🧓 Pacientes
 
@@ -52,7 +55,6 @@ O sistema permite o cadastro de pacientes, controle de evoluções clínicas, si
 ### ❤️ Sinais Vitais
 
 * Registro de:
-
   * Pressão arterial
   * Temperatura
   * Glicemia
@@ -67,7 +69,6 @@ O sistema permite o cadastro de pacientes, controle de evoluções clínicas, si
 ### 🥗 Avaliação Nutricional
 
 * Registro de:
-
   * Peso
   * Altura
   * IMC
@@ -103,18 +104,16 @@ O sistema permite o cadastro de pacientes, controle de evoluções clínicas, si
 ### 📈 Auditoria
 
 Registro automático de:
-
 * CREATE
 * UPDATE
 * DELETE
-* DEACTIVATE
+* DEACTIVATE / TOGGLE STATUS
 
 Com:
-
-* usuário responsável
-* entidade afetada
-* data/hora
-* descrição da ação
+* Usuário responsável
+* Entidade afetada
+* Data/hora
+* Descrição detalhada da ação
 
 ### 📄 Relatórios
 
@@ -132,8 +131,7 @@ Com:
 A API utiliza autenticação JWT.
 
 Exemplo:
-
-Authorization: Bearer TOKEN
+`Authorization: Bearer TOKEN`
 
 ---
 
@@ -142,8 +140,7 @@ Authorization: Bearer TOKEN
 ### Clonar repositório
 
 ```bash
-git clone https://github.com/seu-usuario/care-home-api.git
-```
+git clone [https://github.com/seu-usuario/care-home-api.git](https://github.com/seu-usuario/care-home-api.git)
 
 ### Entrar na pasta
 
@@ -199,7 +196,7 @@ Modelo relacional utilizando PostgreSQL.
 
 Principais entidades:
 
-* User
+* User (com controle de status por campo ativo)
 * Patient
 * Evolution
 * VitalSign
@@ -269,7 +266,7 @@ Gera relatório completo do paciente.
 
 ## 🔍 Auditoria
 
-Todos os eventos críticos do sistema são registrados automaticamente para rastreabilidade e conformidade.
+Todos os eventos críticos do sistema, incluindo gerenciamento de contas, acessos e alterações clínicas, são registrados automaticamente para rastreabilidade, conformidade e segurança jurídica institucional.
 
 ---
 
