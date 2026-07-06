@@ -135,7 +135,7 @@ const updatePasswordController = new UpdatePasswordController();
 authRoutes.post("/login", loginController.handle);
 authRoutes.post("/register", registerController.handle);
 authRoutes.patch("/users/admin-reset-password", authMiddleware,resetPasswordByAdminController.handle);
-authRoutes.get("/users", authMiddleware, listUsersController.handle);
+authRoutes.get("/users", authMiddleware, roleMiddleware("admin"), listUsersController.handle);
 authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
 
 
