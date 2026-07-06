@@ -54,6 +54,7 @@ import { upload } from "../config/multer";
 import { DeletePatientDocumentController } from "../controllers/DeletePatientDocumentController";
 import { ResetPasswordByAdminController } from "../controllers/ResetPasswordByAdminController";
 import { ListUsersController } from "../controllers/ListUsersController";
+import { UpdatePasswordController } from "../controllers/UpdatePasswordController";
 
 const authRoutes = Router();
 
@@ -107,6 +108,7 @@ const exportPatientsController = new ExportPatientsController();
 const exportAuditLogsController = new ExportAuditLogsController();
 const resetPasswordByAdminController = new ResetPasswordByAdminController();
 const listUsersController = new ListUsersController();
+const updatePasswordController = new UpdatePasswordController();
 
 /**
  * @swagger
@@ -134,6 +136,7 @@ authRoutes.post("/login", loginController.handle);
 authRoutes.post("/register", registerController.handle);
 authRoutes.patch("/users/admin-reset-password", authMiddleware,resetPasswordByAdminController.handle);
 authRoutes.get("/users", authMiddleware, listUsersController.handle);
+authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
 
 
 /**
