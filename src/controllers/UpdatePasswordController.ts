@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { compare, hash } from "bcryptjs"; 
+
 export class UpdatePasswordController {
   async handle(request: Request, response: Response) {
     try {
+        if (!request.user) {
+        return response.status(401).json({ error: "Não autorizado." });
+      }
       const userId = request.user.id; 
       const { senhaAntiga, novaSenha } = request.body;
 
