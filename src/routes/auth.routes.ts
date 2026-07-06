@@ -52,6 +52,7 @@ import { ExportPatientsController } from "../controllers/ExportPatientsControlle
 import { ExportAuditLogsController } from "../controllers/ExportAuditLogsController";
 import { upload } from "../config/multer";
 import { DeletePatientDocumentController } from "../controllers/DeletePatientDocumentController";
+import { ResetPasswordByAdminController } from "../controllers/ResetPasswordByAdminController";
 
 const authRoutes = Router();
 
@@ -103,6 +104,7 @@ const deletePatientDocumentController = new DeletePatientDocumentController();
 
 const exportPatientsController = new ExportPatientsController();
 const exportAuditLogsController = new ExportAuditLogsController();
+const resetPasswordByAdminController = new ResetPasswordByAdminController();
 
 
 /**
@@ -128,8 +130,14 @@ const exportAuditLogsController = new ExportAuditLogsController();
  *         description: Login realizado com sucesso
  */
 authRoutes.post("/login", loginController.handle);
-
 authRoutes.post("/register", registerController.handle);
+authRoutes.patch(
+  "/users/admin-reset-password", 
+  authMiddleware, 
+  resetPasswordByAdminController.handle
+);
+
+
 /**
  * @swagger
  * /auth/patients:
