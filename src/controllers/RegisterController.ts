@@ -9,11 +9,14 @@ export class RegisterController {
 
     try {
       // 2. TRAVA DE SEGURANÇA: Verifica se quem está tentando cadastrar é um ADMIN
-      // O 'request.user.id' geralmente é injetado pelo seu middleware de autenticação JWT
       const requestUserId = request.user?.id; 
 
+      // Se o middleware estivesse ativo, o id estaria aqui. 
+      // Vamos deixar esse log para você ver no terminal se ele está chegando!
+      console.log("ID do usuário que disparou a requisição:", requestUserId);
+
       if (!requestUserId) {
-        return response.status(401).json({ error: "Não autorizado. Token ausente ou inválido." });
+        return response.status(401).json({ error: "Não autorizado. O middleware de autenticação não injetou o usuário." });
       }
 
       const adminUser = await prisma.user.findUnique({
@@ -25,7 +28,8 @@ export class RegisterController {
           error: "Acesso negado. Apenas administradores podem cadastrar novos funcionários." 
         });
       }
-
+      
+      // ... resto do seu código (Validações de email, CPF e create permanecem iguais)
       // 3. VALIDAÇÃO: Verifica se o e-mail já está cadastrado
       const emailExists = await prisma.user.findUnique({
         where: { email },

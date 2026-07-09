@@ -135,10 +135,10 @@ const toggleUserStatusController = new ToggleUserStatusController();
  *         description: Login realizado com sucesso
  */
 authRoutes.post("/login", loginController.handle);
-authRoutes.post("/register", registerController.handle);
+authRoutes.post("/register", authMiddleware, roleMiddleware("admin"), registerController.handle);
 authRoutes.patch("/users/admin-reset-password", authMiddleware,resetPasswordByAdminController.handle);
 authRoutes.get("/users", authMiddleware, roleMiddleware("admin"), listUsersController.handle);
-authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);// Rota PATCH protegida por autenticação e restrita a administradores
+authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
 authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware("admin"), toggleUserStatusController.handle);
 
 /**
