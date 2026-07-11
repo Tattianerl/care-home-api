@@ -13,6 +13,8 @@ export class DashboardTodayController {
 
     const [
       pacientesAtivos,
+      profissionaisAtivos,
+
       atendimentosHoje,
       proximosAtendimentos,
       evolucoesHoje,
@@ -22,12 +24,20 @@ export class DashboardTodayController {
       ultimosPacientes,
       ultimasEvolucoes,
       proximosAtendimentosDetalhados,
+
+      atividadeRecente,
     ] = await Promise.all([
       prisma.patient.count({
         where: {
           ativo: true,
         },
       }),
+
+      prisma.user.count({
+          where: {
+            ativo: true,
+          },
+        }),
 
       prisma.appointment.count({
         where: {
@@ -115,10 +125,29 @@ export class DashboardTodayController {
           },
         },
       }),
+
+      prisma.auditLog.findMany({
+          orderBy: {
+            createdAt: "desc",
+          },
+
+          take: 8,
+
+          include: {
+            user: {
+              select: {
+                nome: true,
+                cargo: true,
+              },
+            },
+          },
+        }),
     ]);
 
     return response.status(200).json({
       pacientesAtivos,
+      profissionaisAtivos,
+
       atendimentosHoje,
       proximosAtendimentos,
       evolucoesHoje,
@@ -128,6 +157,8 @@ export class DashboardTodayController {
       ultimosPacientes,
       ultimasEvolucoes,
       proximosAtendimentosDetalhados,
+
+      atividadeRecente,
 
       dataReferencia: today,
     });
