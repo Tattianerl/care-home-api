@@ -27,7 +27,7 @@ import { CreateVitalSignController } from "../controllers/CreateVitalSignControl
 import { ListPatientVitalSignsController } from "../controllers/ListPatientVitalSignsController";
 import { CreatePatientMedicationController } from "../controllers/CreatePatientMedicationController";
 import { ListPatientMedicationsController } from "../controllers/ListPatientMedicationsController";
-import { GeneratePatientReportController } from "../controllers/GeneratePatientReportController";
+import { GeneratePatientReportController } from "../controllers/reports/GeneratePatientReportController";
 import { CreateAppointmentController } from "../controllers/CreateAppointmentController";
 import { ListPatientAppointmentsController } from "../controllers/ListPatientAppointmentsController";
 import { UpdateAppointmentStatusController } from "../controllers/UpdateAppointmentStatusController";
@@ -36,26 +36,35 @@ import { CreateNutritionalAssessmentController } from "../controllers/CreateNutr
 import { ListPatientNutritionalAssessmentsController } from "../controllers/ListPatientNutritionalAssessmentsController";
 import { UploadSignatureController } from "../controllers/UploadSignatureController";
 import { GetProfileController } from "../controllers/GetProfileController";
-import { ListAuditLogsController } from "../controllers/ListAuditLogsController";
+
+import { ListAuditLogsController } from "../controllers/audit/ListAuditLogsController";
+import { AuditSummaryController } from "../controllers/audit/AuditSummaryController";
+
 import { PatientsByMonthController } from "../controllers/PatientsByMonthController";
 import { EvolutionsByMonthController } from "../controllers/EvolutionsByMonthController";
 import { AppointmentsByMonthController } from "../controllers/AppointmentsByMonthController";
 import { DocumentsByMonthController } from "../controllers/DocumentsByMonthController";
-import { AuditSummaryController } from "../controllers/AuditSummaryController";
+
 import { TopUsersController } from "../controllers/TopUsersController";
 import { PatientTimelineController } from "../controllers/PatientTimelineController";
 import { UpcomingAppointmentsController } from "../controllers/UpcomingAppointmentsController";
 import { DashboardTodayController } from "../controllers/DashboardTodayController";
 
 import { DownloadPatientDocumentController } from "../controllers/DownloadPatientDocumentController";
-import { ExportPatientsController } from "../controllers/ExportPatientsController";
-import { ExportAuditLogsController } from "../controllers/ExportAuditLogsController";
+
 import { upload } from "../config/multer";
 import { DeletePatientDocumentController } from "../controllers/DeletePatientDocumentController";
 import { ResetPasswordByAdminController } from "../controllers/ResetPasswordByAdminController";
 import { ListUsersController } from "../controllers/ListUsersController";
 import { UpdatePasswordController } from "../controllers/UpdatePasswordController";
 import { ToggleUserStatusController } from "../controllers/ToggleUserStatusController";
+
+import { ExportEvolutionController } from "../controllers/reports/ExportEvolutionController";
+import { ExportMedicationController } from "../controllers/reports/ExportMedicationController";
+import { ExportVitalSignsController } from "../controllers/reports/ExportVitalSignsController";
+import { ExportDocumentsController } from "../controllers/reports/ExportDocumentsController";
+import { ExportPatientsController } from "../controllers/reports/ExportPatientsController";
+import { ExportAuditLogsController } from "../controllers/reports/ExportAuditLogsController";
 
 const authRoutes = Router();
 
@@ -65,12 +74,19 @@ const createPatientController = new CreatePatientController();
 const createEvolutionController = new CreateEvolutionController();
 const listPatientsController = new ListPatientsController();
 const getPatientController = new GetPatientController();
-const listEvolutionsController = new ListEvolutionsController();
-const listPatientEvolutionsController = new ListPatientEvolutionsController();
+
 const updatePatientController = new UpdatePatientController();
 const deletePatientController = new DeletePatientController();
+
+const listEvolutionsController = new ListEvolutionsController();
+const listPatientEvolutionsController = new ListPatientEvolutionsController();
 const updateEvolutionController = new UpdateEvolutionController();
 const deleteEvolutionController = new DeleteEvolutionController();
+
+const exportEvolutionController = new ExportEvolutionController();
+const exportMedicationController = new ExportMedicationController();
+const exportVitalSignsController = new ExportVitalSignsController();
+const exportDocumentsController = new ExportDocumentsController();
 
 const dashboardController = new DashboardController();
 
@@ -439,8 +455,46 @@ authRoutes.delete(
   deleteEvolutionController.handle
 );
 
+authRoutes.get(
+  "/reports/patients",
+  authMiddleware,
+  exportPatientsController.handle
+);
 
+authRoutes.get(
+  "/reports/evolutions",
+  authMiddleware,
+  roleMiddleware("admin"),
+  exportEvolutionController.handle
+);
 
+authRoutes.get(
+  "/reports/medications",
+  authMiddleware,
+  roleMiddleware("admin"),
+  exportMedicationController.handle
+);
+
+authRoutes.get(
+  "/reports/vital-signs",
+  authMiddleware,
+  roleMiddleware("admin"),
+  exportVitalSignsController.handle
+);
+
+authRoutes.get(
+  "/reports/documents",
+  authMiddleware,
+  roleMiddleware("admin"),
+  exportDocumentsController.handle
+);
+
+authRoutes.get(
+  "/reports/audit",
+  authMiddleware,
+  roleMiddleware("admin"),
+  exportDocumentsController.handle
+);
 /**
  * @swagger
  * /auth/dashboard:

@@ -3,7 +3,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import fs from "fs";
 
-import { prisma } from "../lib/prisma";
+import { prisma } from "../../lib/prisma";
 
 export class GeneratePatientReportController {
   async handle(request: Request, response: Response) {
@@ -141,9 +141,7 @@ export class GeneratePatientReportController {
           ).toLocaleDateString("pt-BR")} - ${evolution.descricao}`
         );
       });
-    }
-
-    
+    }    
 
     doc.moveDown(2);
 

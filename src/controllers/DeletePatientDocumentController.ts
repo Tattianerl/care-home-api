@@ -38,6 +38,8 @@ export class DeletePatientDocumentController {
         data: {
           deletedAt: new Date(),
           deletedBy: user.id,
+
+          deletedByUserId: user.id,
         },
       });
             

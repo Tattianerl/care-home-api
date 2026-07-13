@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { createAuditLog } from "../services/createAuditLog";
+import { createAuditLog } from "../services/audit/createAuditLog";
 
 export class CreateVitalSignController {
   async handle(request: Request, response: Response) {

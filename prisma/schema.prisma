@@ -28,6 +28,8 @@ model User {
   nutritionalAssessments NutritionalAssessment[]
 
   auditLogs AuditLog[]
+
+  deletedDocuments PatientDocument[] @relation("DeletedDocuments")
 }
 
 model Patient {
@@ -77,8 +79,11 @@ model PatientDocument {
 
   createdAt DateTime @default(now())
 
-  deletedAt DateTime?
-  deletedBy String?
+  deletedAt       DateTime?
+  deletedBy       String?
+  deletedByUserId String?
+
+  deletedByUser User? @relation("DeletedDocuments", fields: [deletedByUserId], references: [id])
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
