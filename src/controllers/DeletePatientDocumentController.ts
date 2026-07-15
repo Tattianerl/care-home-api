@@ -16,6 +16,13 @@ export class DeletePatientDocumentController {
    // Buscar documento
     const document = await prisma.patientDocument.findUnique({
       where: { id: documentId },
+      include: {
+        patient: {
+          select: {
+            nome: true,
+          },
+        },
+      },
     });
     
     if (!document) {
@@ -45,15 +52,14 @@ export class DeletePatientDocumentController {
             
       // Registra a exclusão no Log de Auditoria
       await prisma.auditLog.create({
-        data: {
-          acao: "EXCLUSAO",
-          entidade: "PatientDocument",
-          entidadeId: documentId,
-          descricao: `Documento "${document.nome}" do paciente ${document.patientId} foi marcado como excluído por ${user.nome}.`,
-          userId: user.id
-        }
-      });
-
+      data: {
+        acao: "DELETE",
+        entidade: "PATIENT_DOCUMENT",
+        entidadeId: documentId,
+        descricao: `Documento "${document.nome}" do paciente ${document.patient.nome} foi marcado como excluído.`,
+        userId: user.id
+      }
+    });
       return response.status(204).send(); 
 
     } catch (error) {
