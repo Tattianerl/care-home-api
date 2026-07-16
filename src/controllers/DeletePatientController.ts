@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class DeletePatientController {
   async handle(request: Request, response: Response) {
@@ -28,7 +29,7 @@ export class DeletePatientController {
     });
     await createAuditLog({
       userId: request.user!.id,
-      acao: "DEACTIVATE",
+      acao: AuditActions.DEACTIVATE,
       entidade: "PATIENT",
       entidadeId: patientExists.id,
       descricao: `Paciente ${patientExists.nome} desativado`,

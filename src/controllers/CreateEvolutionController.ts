@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 
 export class CreateEvolutionController {
@@ -42,7 +43,7 @@ export class CreateEvolutionController {
 
     await createAuditLog({
       userId,
-      acao: "CREATE",
+      acao: AuditActions.CREATE,
       entidade: "EVOLUTION",
       entidadeId: evolution.id,
       descricao: `Nova evolução registrada para o paciente ${patient.nome}`,

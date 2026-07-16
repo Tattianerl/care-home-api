@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class CreateVitalSignController {
   async handle(request: Request, response: Response) {
@@ -44,7 +45,7 @@ export class CreateVitalSignController {
 
     await createAuditLog({
       userId: request.user!.id,
-      acao: "CREATE",
+      acao: AuditActions.CREATE,
       entidade: "VITAL_SIGN",
       entidadeId: vitalSign.id,
       descricao: `Sinais vitais registrados para o paciente ${patientExists.nome}`,

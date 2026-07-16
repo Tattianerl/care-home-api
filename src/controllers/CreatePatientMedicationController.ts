@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class CreatePatientMedicationController {
   async handle(request: Request, response: Response) {
@@ -45,7 +46,7 @@ export class CreatePatientMedicationController {
 
     await createAuditLog({
       userId: request.user!.id,
-      acao: "CREATE",
+      acao: AuditActions.CREATE,
       entidade: "MEDICATION",
       entidadeId: medication.id,
       descricao: `Medicamento ${medication.nome} cadastrado para o paciente ${patientExists.nome}`,

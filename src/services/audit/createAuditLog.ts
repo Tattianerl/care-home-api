@@ -1,8 +1,9 @@
+import { AuditAction } from "../../constants/auditActions";
 import { prisma } from "../../lib/prisma";
 
 interface AuditLogData {
   userId: string;
-  acao: string;
+  acao: AuditAction;
   entidade: string;
   entidadeId: string;
   descricao?: string;

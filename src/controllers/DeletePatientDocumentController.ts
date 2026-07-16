@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { AuditActions } from "../constants/auditActions";
 
 export class DeletePatientDocumentController {
   async handle(request: Request, response: Response) {
@@ -53,7 +54,7 @@ export class DeletePatientDocumentController {
       // Registra a exclusão no Log de Auditoria
       await prisma.auditLog.create({
       data: {
-        acao: "DELETE",
+        acao: AuditActions.DELETE ,
         entidade: "PATIENT_DOCUMENT",
         entidadeId: documentId,
         descricao: `Documento "${document.nome}" do paciente ${document.patient.nome} foi marcado como excluído.`,
