@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { AppointmentStatus } from "../constants/appointmentStatus";
+
+
+const validStatus = Object.values(
+ AppointmentStatus
+);
 
 export class UpdateAppointmentStatusController {
   async handle(request: Request, response: Response) {
@@ -7,12 +13,8 @@ export class UpdateAppointmentStatusController {
 
     const { status } = request.body;
 
-    const validStatus = [
-      "agendado",
-      "realizado",
-      "cancelado",
-    ];
-
+    const validStatus = Object.values(AppointmentStatus);
+    
     if (!validStatus.includes(status)) {
       return response.status(400).json({
         error: "Status inválido",

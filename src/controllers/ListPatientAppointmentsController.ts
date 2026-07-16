@@ -10,11 +10,18 @@ export class ListPatientAppointmentsController {
         patientId,
       },
       include: {
-        user: {
-          select: {
-            nome: true,
-            cargo: true,
-          },
+        patient:{
+          select:{
+            id:true,
+            nome:true,
+          }
+        },
+        user:{
+          select:{
+            id:true,
+            nome:true,
+            cargo:true,
+          }
         },
       },
       orderBy: {

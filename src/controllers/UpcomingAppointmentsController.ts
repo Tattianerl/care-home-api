@@ -10,24 +10,43 @@ export class UpcomingAppointmentsController {
 
     next7Days.setDate(today.getDate() + 7);
 
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        dataHora: {
-          gte: today,
-          lte: next7Days,
-        },
-      },
-      include: {
-        patient: {
-          select: {
-            nome: true,
+
+    const appointments =
+      await prisma.appointment.findMany({
+
+        where: {
+          dataHora: {
+            gte: today,
+            lte: next7Days,
           },
         },
-      },
-      orderBy: {
-        dataHora: "asc",
-      },
-    });
+
+        include: {
+
+          patient: {
+            select: {
+              id: true,
+              nome: true,
+            },
+          },
+
+
+          user: {
+            select: {
+              id: true,
+              nome: true,
+              cargo: true,
+            },
+          },
+
+        },
+
+        orderBy: {
+          dataHora: "asc",
+        },
+
+      });
+
 
     return response.status(200).json(appointments);
   }
