@@ -1,25 +1,38 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { AppointmentStatus } from "@prisma/client";
+
 
 export class UpcomingAppointmentsController {
-  async handle(request: Request, response: Response) {
+
+  async handle(
+    request: Request,
+    response: Response
+  ) {
 
     const today = new Date();
 
     const next7Days = new Date();
 
-    next7Days.setDate(today.getDate() + 7);
+    next7Days.setDate(
+      today.getDate() + 7
+    );
 
 
     const appointments =
       await prisma.appointment.findMany({
 
         where: {
+
           dataHora: {
             gte: today,
             lte: next7Days,
           },
+
+          status: AppointmentStatus.AGENDADO,
+
         },
+
 
         include: {
 
@@ -41,6 +54,7 @@ export class UpcomingAppointmentsController {
 
         },
 
+
         orderBy: {
           dataHora: "asc",
         },
@@ -48,6 +62,10 @@ export class UpcomingAppointmentsController {
       });
 
 
-    return response.status(200).json(appointments);
+    return response.status(200).json(
+      appointments
+    );
+
   }
+
 }

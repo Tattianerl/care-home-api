@@ -127,7 +127,7 @@ model Appointment {
   titulo      String
   dataHora    DateTime
   observacoes String?
-  status      String   @default("agendado")
+  status AppointmentStatus @default(AGENDADO)
   createdAt   DateTime @default(now())
 
   patientId String
@@ -135,6 +135,12 @@ model Appointment {
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+}
+
+enum AppointmentStatus {
+  AGENDADO
+  REALIZADO
+  CANCELADO
 }
 
 model NutritionalAssessment {
