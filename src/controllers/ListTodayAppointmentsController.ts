@@ -1,7 +1,5 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { AppointmentStatus } from "@prisma/client";
-
 
 export class ListTodayAppointmentsController {
 
@@ -36,12 +34,11 @@ export class ListTodayAppointmentsController {
         where: {
 
           dataHora: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
 
-          status: {
-            not: AppointmentStatus.CANCELADO,
+            gte: startOfDay,
+
+            lte: endOfDay,
+
           },
 
         },
@@ -50,33 +47,91 @@ export class ListTodayAppointmentsController {
         include: {
 
           patient: {
+
             select: {
+
               id: true,
+
               nome: true,
+
             },
+
           },
 
 
           user: {
+
             select: {
+
               id: true,
+
               nome: true,
+
               cargo: true,
+
             },
+
           },
 
         },
 
 
         orderBy: {
+
           dataHora: "asc",
+
         },
 
       });
 
 
-    return response.json(
-      appointments
+    return response.status(200).json(
+
+      appointments.map((appointment) => ({
+
+        id:
+          appointment.id,
+
+        titulo:
+          appointment.titulo,
+
+        dataHora:
+          appointment.dataHora,
+
+        observacoes:
+          appointment.observacoes,
+
+        status:
+          appointment.status,
+
+
+        paciente: {
+
+          id:
+            appointment.patient.id,
+
+          nome:
+            appointment.patient.nome,
+
+        },
+
+
+        profissional: {
+
+          id:
+            appointment.user.id,
+
+          nome:
+            appointment.user.nome,
+
+          cargo:
+            appointment.user.cargo,
+
+        },
+
+
+      }))
+
     );
 
   }

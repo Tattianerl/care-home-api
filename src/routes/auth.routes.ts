@@ -66,6 +66,8 @@ import { ExportDocumentsController } from "../controllers/reports/ExportDocument
 import { ExportPatientsController } from "../controllers/reports/ExportPatientsController";
 import { ExportAuditLogsController } from "../controllers/reports/ExportAuditLogsController";
 import { ListAppointmentsController } from "../controllers/ListAppointmentsController";
+import { GetAppointmentController } from "../controllers/GetAppointmentController";
+import { UpdateAppointmentController } from "../controllers/UpdateAppointmentController";
 
 const authRoutes = Router();
 
@@ -73,9 +75,9 @@ const registerController = new RegisterController();
 const loginController = new LoginController();
 const createPatientController = new CreatePatientController();
 const createEvolutionController = new CreateEvolutionController();
+
 const listPatientsController = new ListPatientsController();
 const getPatientController = new GetPatientController();
-
 const updatePatientController = new UpdatePatientController();
 const deletePatientController = new DeletePatientController();
 
@@ -106,6 +108,8 @@ const listAppointmentsController = new ListAppointmentsController();
 const listPatientAppointmentsController = new ListPatientAppointmentsController();
 const updateAppointmentStatusController = new UpdateAppointmentStatusController();
 const listTodayAppointmentsController = new ListTodayAppointmentsController();
+const getAppointmentController = new GetAppointmentController();
+const updateAppointmentController = new UpdateAppointmentController();
 
 const createNutritionalAssessmentController = new CreateNutritionalAssessmentController();
 const listPatientNutritionalAssessmentsController = new ListPatientNutritionalAssessmentsController();
@@ -877,7 +881,11 @@ authRoutes.get(
   authMiddleware,
   listAppointmentsController.handle
 );
-
+authRoutes.put(
+  "/appointments/:id",
+  authMiddleware,
+  updateAppointmentController.handle
+);
 /**
  * @swagger
  * /auth/nutritional-assessments:
@@ -1172,6 +1180,11 @@ authRoutes.get(
   upcomingAppointmentsController.handle
 );
 
+authRoutes.get(
+  "/appointments/:id",
+  authMiddleware,
+  getAppointmentController.handle
+);
 
 /**
  * @swagger
