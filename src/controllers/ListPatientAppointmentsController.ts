@@ -3,31 +3,43 @@ import { prisma } from "../lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
 
 
-export class ListTodayAppointmentsController {
+export class ListPatientAppointmentsController {
 
   async handle(
     request: Request,
     response: Response
   ) {
 
-    const startOfDay = new Date();
+    const patientId = request.params.id as string;
 
-    startOfDay.setHours(
-      0,
-      0,
-      0,
-      0
-    );
+    const status =
+      request.query.status as string | undefined;
 
 
-    const endOfDay = new Date();
+    const patient =
+      await prisma.patient.findUnique({
+        where: {
+          id: patientId,
+        },
+      });
 
-    endOfDay.setHours(
-      23,
-      59,
-      59,
-      999
-    );
+
+    if (!patient) {
+      return response.status(404).json({
+        error: "Paciente não encontrado.",
+      });
+    }
+
+
+    const whereStatus =
+      status &&
+      Object.values(AppointmentStatus)
+        .includes(status as AppointmentStatus)
+        ? {
+            status:
+              status as AppointmentStatus,
+          }
+        : {};
 
 
     const appointments =
@@ -35,14 +47,9 @@ export class ListTodayAppointmentsController {
 
         where: {
 
-          dataHora: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          patientId,
 
-          status: {
-            not: AppointmentStatus.CANCELADO,
-          },
+          ...whereStatus,
 
         },
 
@@ -69,7 +76,9 @@ export class ListTodayAppointmentsController {
 
 
         orderBy: {
-          dataHora: "asc",
+
+          dataHora: "desc",
+
         },
 
       });

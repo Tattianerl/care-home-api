@@ -65,6 +65,7 @@ import { ExportVitalSignsController } from "../controllers/reports/ExportVitalSi
 import { ExportDocumentsController } from "../controllers/reports/ExportDocumentsController";
 import { ExportPatientsController } from "../controllers/reports/ExportPatientsController";
 import { ExportAuditLogsController } from "../controllers/reports/ExportAuditLogsController";
+import { ListAppointmentsController } from "../controllers/ListAppointmentsController";
 
 const authRoutes = Router();
 
@@ -99,10 +100,13 @@ const listPatientVitalSignsController = new ListPatientVitalSignsController();
 const createPatientMedicationController = new CreatePatientMedicationController();
 const listPatientMedicationsController = new ListPatientMedicationsController();  
 const generatePatientReportController = new GeneratePatientReportController();
+
 const createAppointmentController = new CreateAppointmentController();
+const listAppointmentsController = new ListAppointmentsController();
 const listPatientAppointmentsController = new ListPatientAppointmentsController();
 const updateAppointmentStatusController = new UpdateAppointmentStatusController();
 const listTodayAppointmentsController = new ListTodayAppointmentsController();
+
 const createNutritionalAssessmentController = new CreateNutritionalAssessmentController();
 const listPatientNutritionalAssessmentsController = new ListPatientNutritionalAssessmentsController();
 const uploadSignatureController = new UploadSignatureController();
@@ -868,7 +872,11 @@ authRoutes.get(
   authMiddleware,
   listTodayAppointmentsController.handle
 );
-
+authRoutes.get(
+  "/appointments",
+  authMiddleware,
+  listAppointmentsController.handle
+);
 
 /**
  * @swagger
@@ -876,7 +884,7 @@ authRoutes.get(
  *   post:
  *     summary: Registrar avaliação nutricional
  *     tags:
- *       - Nutritional Assessment
+ *       - Nutritional Assessment"
  *     security:
  *       - bearerAuth: []
  *     responses:
