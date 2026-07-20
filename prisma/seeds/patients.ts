@@ -1,107 +1,65 @@
-// patients.ts
-export const patientsSeed = [
-  {
-    id: "pat-001",
-    nome: "Antônio Silva Medeiros",
-    dataNascimento: new Date("1942-05-14"),
-    responsavel: "Carlos Medeiros (Filho)",
-    telefone: "(11) 98888-1111",
-    historicoMedico: "Hipertensão Arterial Sistêmica (HAS), Diabetes Mellitus tipo 2. Internado na ILPI há 6 meses após queda da própria altura.",
-    medicamentos: "Losartana 50mg (1x ao dia), Metformina 850mg (2x ao dia).",
-    alergias: "Dipirona",
-    diagnosticos: "CID I10 (Hipertensão), CID E11 (Diabetes)",
-    observacoes: "Prefere caminhar no jardim no período da tarde. Necessita de auxílio leve para se levantar.",
-    ativo: true
-  },
-  {
-    id: "pat-002",
-    nome: "Maria das Dores Camargo",
-    dataNascimento: new Date("1938-11-22"),
-    responsavel: "Ana Camargo Ramos (Filha)",
-    telefone: "(11) 98888-2222",
-    historicoMedico: "Doença de Alzheimer em estágio moderado, Osteoporose severa.",
-    medicamentos: "Donepezila 10mg (à noite), Alendronato de Sódio 70mg (1x por semana).",
-    alergias: "Nenhuma relatada",
-    diagnosticos: "CID G30 (Doença de Alzheimer), CID M81 (Osteoporose)",
-    observacoes: "Apresenta episódios de desorientação temporal ao entardecer (Síndrome do Pôr do Sol). Monitorar de perto.",
-    ativo: true
-  },
-  {
-    id: "pat-003",
-    nome: "Geraldo Alckmin Faria",
-    dataNascimento: new Date("1945-03-08"),
-    responsavel: "Patrícia Faria (Neta)",
-    telefone: "(11) 98888-3333",
-    historicoMedico: "Sequela de AVC Isquêmico (2023) com hemiparesia à esquerda. Sequelas na fala.",
-    medicamentos: "AAS 100mg (1x ao dia), Sinvastatina 20mg (à noite).",
-    alergias: "Penicilina",
-    diagnosticos: "CID I69.3 (Sequelas de infarto cerebral)",
-    observacoes: "Cadeirante. Realiza fisioterapia 3x por semana. Alimentação pastosa devido à disfagia leve.",
-    ativo: true
-  },
-  {
-    id: "pat-004",
-    nome: "Francisca Nogueira Abreu",
-    dataNascimento: new Date("1935-08-30"),
-    responsavel: "Marcos Abreu (Filho)",
-    telefone: "(11) 98888-4444",
-    historicoMedico: "Insuficiência Cardíaca Congestiva (ICC), Artrite Reumatóide.",
-    medicamentos: "Furosemida 40mg (pela manhã), Enalapril 10mg (2x ao dia).",
-    alergias: "Sulfa",
-    diagnosticos: "CID I50 (Insuficiência cardíaca), CID M06 (Artrite reumatóide)",
-    observacoes: "Apresenta edema de membros inferiores com frequência. Restrição hídrica parcial anotada em prontuário.",
-    ativo: true
-  },
-  {
-    id: "pat-005",
-    nome: "Benedito José dos Santos",
-    dataNascimento: new Date("1947-01-19"),
-    responsavel: "Juliana Santos (Filha)",
-    telefone: "(11) 98888-5555",
-    historicoMedico: "Doença de Parkinson, Depressão Maior tardia.",
-    medicamentos: "Prolopa 200mg/50mg (3x ao dia), Sertralina 50mg (pela manhã).",
-    alergias: "Nenhuma relatada",
-    diagnosticos: "CID G20 (Doença de Parkinson), CID F32 (Episódios depressivos)",
-    observacoes: "Tremores de repouso acentuados. Alto risco de queda durante a marcha. Costuma se isolar nas atividades em grupo.",
-    ativo: true
-  },
-  {
-    id: "pat-006",
-    nome: "Teresa Cristina Diniz",
-    dataNascimento: new Date("1940-07-02"),
-    responsavel: "Roberto Diniz (Irmão)",
-    telefone: "(11) 98888-6666",
-    historicoMedico: "Hipotireoidismo, Glaucoma avançado em ambos os olhos.",
-    medicamentos: "Levotiroxina Sódica 50mcg (em jejum), Colírio Timolol 0,5% (2x ao dia).",
-    alergias: "Látex",
-    diagnosticos: "CID E03.9 (Hipotireoidismo), CID H40 (Glaucoma)",
-    observacoes: "Baixa visão severa. Necessita de comandos verbais claros e guia físico para locomoção nos ambientes.",
-    ativo: true
-  },
-  {
-    id: "pat-007",
-    nome: "Waldemar Rodrigues Fontes",
-    dataNascimento: new Date("1939-09-12"),
-    responsavel: "Sandra Fontes (Filha)",
-    telefone: "(11) 98888-7777",
-    historicoMedico: "DPOC (Doença Pulmonar Obstrutiva Crônica), Tabagista pregresso.",
-    medicamentos: "Bombinha de Formoterol + Budesonida (2x ao dia), Oxigenoterapia domiciliar se saturação menor que 88%.",
-    alergias: "Nenhuma relatada",
-    diagnosticos: "CID J44 (Outras doenças pulmonares obstrutivas crônicas)",
-    observacoes: "Cansaço aos mínimos esforços. Evitar atividades físicas intensas na rotina da tarde.",
-    ativo: true
-  },
-  {
-    id: "pat-008",
-    nome: "Irani Lima Barbosa",
-    dataNascimento: new Date("1944-12-05"),
-    responsavel: "Lucas Barbosa (Neto)",
-    telefone: "(11) 98888-8888",
-    historicoMedico: "Artrite severa de joelhos, Incontinência urinária de esforço.",
-    medicamentos: "Paracetamol 750mg (se dor crônica), Uso crônico de fralda geriátrica descartável.",
-    alergias: "AINEs (Anti-inflamatórios não esteroides)",
-    diagnosticos: "CID M17 (Gonartrose / Artrose do joelho)",
-    observacoes: "Utiliza andador para locomoção. Muito comunicativa e assídua nas oficinas de artesanato.",
-    ativo: true
-  }
-];
+import { PrismaClient } from "@prisma/client";
+
+export async function seedPatients(prisma: PrismaClient) {
+  await prisma.patient.createMany({
+    data: [
+      {
+        id: "pat-001",
+        nome: "Antônio Silva Medeiros",
+        dataNascimento: new Date("1945-03-15T00:00:00Z"),
+        responsavel: "Carlos Medeiros (Filho)",
+        telefone: "(21) 98888-7777",
+        historicoMedico: "Hipertensão crônica, Diabetes Tipo 2.",
+        medicamentos: "Losartana 50mg, Metformina 850mg.",
+        alergias: "Penicilina",
+        diagnosticos: "Hipertensão Arterial Sistêmica",
+        observacoes: "Necessita de auxílio leve para deambular.",
+        ativo: true,
+        createdAt: new Date("2026-07-01T09:15:00Z")
+      },
+      {
+        id: "pat-002",
+        nome: "Maria das Dores Camargo",
+        dataNascimento: new Date("1938-11-22T00:00:00Z"),
+        responsavel: "Ana Camargo (Filha)",
+        telefone: "(21) 97777-6666",
+        historicoMedico: "Alzheimer em estágio moderado, osteoporose.",
+        medicamentos: "Donepezila 10mg, Carbonato de Cálcio.",
+        alergias: "Sem alergias conhecidas",
+        diagnosticos: "Doença de Alzheimer",
+        observacoes: "Episódios ocasionais de desorientação noturna.",
+        ativo: true,
+        createdAt: new Date("2026-07-02T10:00:00Z")
+      },
+      {
+        id: "pat-003",
+        nome: "Geraldo Alckmin Faria",
+        dataNascimento: new Date("1950-05-30T00:00:00Z"),
+        responsavel: "Mariana Faria (Esposa)",
+        telefone: "(21) 96666-5555",
+        historicoMedico: "Cardiopatia isquêmica, pós-infarto (2022).",
+        medicamentos: "AAS 100mg, Selozok 50mg.",
+        alergias: "Sulfa",
+        diagnosticos: "Insuficiência Cardíaca Coronariana",
+        observacoes: "Restrição de esforço físico intenso.",
+        ativo: true,
+        createdAt: new Date("2026-07-03T11:00:00Z")
+      },
+      {
+        id: "pat-004",
+        nome: "Francisca Nogueira Abreu",
+        dataNascimento: new Date("1935-08-12T00:00:00Z"),
+        responsavel: "Roberto Abreu (Neto)",
+        telefone: "(21) 95555-4444",
+        historicoMedico: "Doença de Parkinson, disfagia leve.",
+        medicamentos: "Prolopa 200mg/50mg.",
+        alergias: "Dipirona",
+        diagnosticos: "Parkinson Avançado",
+        observacoes: "Dieta pastosa. Alerta para restrição hídrica devido a edemas.",
+        ativo: true,
+        createdAt: new Date("2026-07-04T09:00:00Z")
+      }
+    ],
+    skipDuplicates: true,
+  });
+}
