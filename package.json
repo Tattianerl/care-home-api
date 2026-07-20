@@ -1,16 +1,22 @@
 {
   "name": "care-home-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "API para gerenciamento de casa de repouso",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "seed": "prisma db seed",
+   
+    "migrate": "prisma migrate dev",
+    "deploy": "prisma migrate deploy",
+    "generate": "prisma generate",
+    "studio": "prisma studio"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
+ "prisma": {
+  "seed": "ts-node --project tsconfig.prisma.json prisma/seed.ts"
+},
   "keywords": [],
   "author": "Tatiane Lima",
   "license": "ISC",
