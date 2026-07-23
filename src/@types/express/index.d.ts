@@ -1,10 +1,13 @@
-declare namespace Express {
-  export interface Request {
-    userId?: string;
+import "express";
 
-    user?: {
-      id: string;
-      cargo: string;
-    };
+declare global {
+  namespace Express {
+    export interface Request {
+      userId?: string;
+      user?: {
+        id: string;
+        cargo: string;
+      };
+    }
   }
 }
