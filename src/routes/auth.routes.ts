@@ -68,6 +68,7 @@ import { ExportAuditLogsController } from "../controllers/reports/ExportAuditLog
 import { ListAppointmentsController } from "../controllers/ListAppointmentsController";
 import { GetAppointmentController } from "../controllers/GetAppointmentController";
 import { UpdateAppointmentController } from "../controllers/UpdateAppointmentController";
+import { ListAllDocumentsController } from "../controllers/ListAllDocumentsController";
 
 const authRoutes = Router();
 
@@ -126,6 +127,8 @@ const topUsersController = new TopUsersController();
 const patientTimelineController = new PatientTimelineController();
 const upcomingAppointmentsController = new UpcomingAppointmentsController();
 const dashboardTodayController = new DashboardTodayController();
+
+const listAllDocumentsController = new ListAllDocumentsController();
 const downloadPatientDocumentController = new DownloadPatientDocumentController();
 const deletePatientDocumentController = new DeletePatientDocumentController();
 
@@ -1060,6 +1063,7 @@ authRoutes.get(
   appointmentsByMonthController.handle
 );
 
+authRoutes.get("/documents",  authMiddleware, listAllDocumentsController.handle);
 
 /**
  * @swagger
@@ -1258,10 +1262,10 @@ authRoutes.delete(
   roleMiddleware("admin"), 
   deletePatientDocumentController.handle
 );
-
 authRoutes.get(
   "/export/audit-logs",
   authMiddleware,
+  roleMiddleware("admin"), 
   exportAuditLogsController.handle
 );
 
