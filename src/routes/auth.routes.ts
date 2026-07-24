@@ -69,6 +69,7 @@ import { ListAppointmentsController } from "../controllers/ListAppointmentsContr
 import { GetAppointmentController } from "../controllers/GetAppointmentController";
 import { UpdateAppointmentController } from "../controllers/UpdateAppointmentController";
 import { ListAllDocumentsController } from "../controllers/ListAllDocumentsController";
+import { ListTodayEvolutionsController } from "../controllers/ListTodayEvolutionsController";
 
 const authRoutes = Router();
 
@@ -82,6 +83,7 @@ const getPatientController = new GetPatientController();
 const updatePatientController = new UpdatePatientController();
 const deletePatientController = new DeletePatientController();
 
+const listTodayEvolutionsController = new ListTodayEvolutionsController();
 const listEvolutionsController = new ListEvolutionsController();
 const listPatientEvolutionsController = new ListPatientEvolutionsController();
 const updateEvolutionController = new UpdateEvolutionController();
@@ -327,6 +329,12 @@ authRoutes.get(
   "/evolutions",
   authMiddleware,
   listEvolutionsController.handle
+);
+
+authRoutes.get(
+  "/evolutions/today",
+  authMiddleware,
+  listTodayEvolutionsController.handle
 );
 
 /**
