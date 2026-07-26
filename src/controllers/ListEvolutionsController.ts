@@ -5,12 +5,28 @@ import { Prisma } from "@prisma/client";
 
 export class ListEvolutionsController {
   async handle(request: Request, response: Response) {
-    const { today, patientId } = request.query;
+   const {
+  today,
+  patientId,
+  professional,
+  startDate,
+  endDate,
+} = request.query;
 
 const where: Prisma.EvolutionWhereInput = {};
 
 if (patientId) {
   where.patientId = String(patientId);
+}
+if (professional) {
+
+  where.user = {
+    nome: {
+      contains: String(professional),
+      mode: "insensitive",
+    },
+  };
+
 }
 
 if (today === "true") {
@@ -24,6 +40,32 @@ if (today === "true") {
     gte: start,
     lte: end,
   };
+}
+
+if(startDate || endDate){
+
+  where.createdAt = {};
+
+
+  if(startDate){
+
+    where.createdAt.gte =
+      new Date(
+        `${startDate}T00:00:00`
+      );
+
+  }
+
+
+  if(endDate){
+
+    where.createdAt.lte =
+      new Date(
+        `${endDate}T23:59:59`
+      );
+
+  }
+
 }
 
 const evolutions = await prisma.evolution.findMany({
