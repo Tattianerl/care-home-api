@@ -20,10 +20,10 @@ export class UploadSignatureController {
       });
     }
 
-    const fileName = `signatures/${Date.now()}-${file.originalname}`;
+    const fileName = `${Date.now()}-${file.originalname}`;
 
     const { error } = await supabase.storage
-      .from("documents")
+      .from("signatures")
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
@@ -35,18 +35,24 @@ export class UploadSignatureController {
       });
     }
 
+    const { data } = supabase.storage
+      .from("signatures")
+      .getPublicUrl(fileName);
+
+    const publicUrl = data.publicUrl;
+
     await prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        assinatura: fileName,
+        assinatura: publicUrl,
       },
     });
 
     return response.status(200).json({
       message: "Assinatura enviada com sucesso",
-      assinatura: fileName,
+      assinatura: publicUrl,
     });
   }
 }
