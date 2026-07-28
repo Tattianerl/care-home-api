@@ -32,10 +32,21 @@ export class CreateEvolutionController {
       });
     }
 
+    let evolutionSignature = assinatura;
+
+    if (!evolutionSignature) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { assinatura: true },
+      });
+
+      evolutionSignature = user?.assinatura || null;
+    }
+
     const evolution = await prisma.evolution.create({
       data: {
         descricao,
-        assinatura,
+        assinatura: evolutionSignature,
         patientId,
         userId,
       },

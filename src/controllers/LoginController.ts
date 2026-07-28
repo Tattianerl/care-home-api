@@ -49,6 +49,7 @@ export class LoginController {
         nome: user.nome,
         email: user.email,
         cargo: user.cargo,
+        assinatura: user.assinatura,
       },
       token,
     });
