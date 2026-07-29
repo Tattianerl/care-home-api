@@ -71,6 +71,7 @@ import { UpdateAppointmentController } from "../controllers/UpdateAppointmentCon
 import { ListAllDocumentsController } from "../controllers/ListAllDocumentsController";
 import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvolutionsPdfController";
 import { ExportVitalSignsPdfController } from "../controllers/reports/ExportVitalSignsPdfController";
+import { ListAllVitalSignsController } from "../controllers/ListAllVitalSignsController";
 
 const authRoutes = Router();
 
@@ -143,7 +144,7 @@ const toggleUserStatusController = new ToggleUserStatusController();
 
 const exportEvolutionsPdfController = new ExportEvolutionsPdfController;
 const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
-
+const listAllVitalSignsController = new ListAllVitalSignsController();
 
 
 /**
@@ -498,6 +499,11 @@ authRoutes.get(
   authMiddleware,
   roleMiddleware("admin"),
   exportVitalSignsController.handle
+);
+authRoutes.get(
+  "/vital-signs",
+  authMiddleware,
+  listAllVitalSignsController.handle
 );
 
 authRoutes.get(
