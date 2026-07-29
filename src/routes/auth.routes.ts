@@ -69,6 +69,8 @@ import { ListAppointmentsController } from "../controllers/ListAppointmentsContr
 import { GetAppointmentController } from "../controllers/GetAppointmentController";
 import { UpdateAppointmentController } from "../controllers/UpdateAppointmentController";
 import { ListAllDocumentsController } from "../controllers/ListAllDocumentsController";
+import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvolutionsPdfController";
+import { ExportVitalSignsPdfController } from "../controllers/reports/ExportVitalSignsPdfController";
 
 const authRoutes = Router();
 
@@ -138,6 +140,11 @@ const resetPasswordByAdminController = new ResetPasswordByAdminController();
 const listUsersController = new ListUsersController();
 const updatePasswordController = new UpdatePasswordController();
 const toggleUserStatusController = new ToggleUserStatusController();
+
+const exportEvolutionsPdfController = new ExportEvolutionsPdfController;
+const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
+
+
 
 /**
  * @swagger
@@ -504,7 +511,7 @@ authRoutes.get(
   "/reports/audit",
   authMiddleware,
   roleMiddleware("admin"),
-  exportDocumentsController.handle
+  exportAuditLogsController.handle
 );
 /**
  * @swagger
@@ -1262,6 +1269,19 @@ authRoutes.delete(
   roleMiddleware("admin"), 
   deletePatientDocumentController.handle
 );
+
+authRoutes.get(
+  "/reports/evolutions/pdf",
+  authMiddleware,
+  exportEvolutionsPdfController.handle
+);
+
+authRoutes.get(
+  "/reports/vitals/pdf",
+  authMiddleware,
+  exportVitalSignsPdfController.handle
+);
+
 authRoutes.get(
   "/export/audit-logs",
   authMiddleware,
