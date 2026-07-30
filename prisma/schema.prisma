@@ -36,22 +36,38 @@ model Patient {
   id             String   @id @default(uuid())
   nome           String
   dataNascimento DateTime
-  responsavel    String
-  telefone       String
+  cpf            String?  @unique
+  rg             String?
+  cartaoSus      String?
+  fotoUrl        String?
+  quartoLeito    String?  
+  genero         String?  
 
-  historicoMedico String?
-  medicamentos    String?
-  alergias        String?
-  diagnosticos    String?
+  responsavel               String
+  telefone                  String
+  responsavelCpf            String?
+  responsavelGrauParentesco String? 
+  responsavelEmail          String?
+  responsavelEndereco       String?
+
+  tipoSanguineo     String?  
+  planoSaude        String?  
+  contatoEmergencia String?  
+  grauDependencia   String?  
+
+  historicoMedico    String?
+  medicamentos       String?
+  alergias           String?
+  diagnosticos       String?
+  restricaoAlimentar String? 
 
   observacoes String?
 
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  evolutions Evolution[]
-  documents  PatientDocument[]
-
+  evolutions             Evolution[]
+  documents              PatientDocument[]
   vitalSigns             VitalSign[]
   medications            Medication[]
   appointments           Appointment[]
