@@ -72,6 +72,7 @@ import { ListAllDocumentsController } from "../controllers/ListAllDocumentsContr
 import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvolutionsPdfController";
 import { ExportVitalSignsPdfController } from "../controllers/reports/ExportVitalSignsPdfController";
 import { ListAllVitalSignsController } from "../controllers/ListAllVitalSignsController";
+import { GetLatestVitalSignController } from "../controllers/DeleteVitalSignController";
 
 const authRoutes = Router();
 
@@ -145,7 +146,7 @@ const toggleUserStatusController = new ToggleUserStatusController();
 const exportEvolutionsPdfController = new ExportEvolutionsPdfController;
 const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
 const listAllVitalSignsController = new ListAllVitalSignsController();
-
+const getLatestVitalSignController = new GetLatestVitalSignController();
 
 /**
  * @swagger
@@ -687,6 +688,12 @@ authRoutes.get(
   "/patients/:id/vital-signs",
   authMiddleware,
   listPatientVitalSignsController.handle
+);
+
+authRoutes.get(
+  "/patients/:id/vital-signs/latest",
+  authMiddleware,
+  getLatestVitalSignController.handle
 );
 
 
