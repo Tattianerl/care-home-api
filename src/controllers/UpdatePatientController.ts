@@ -5,17 +5,35 @@ import { AuditActions } from "../constants/auditActions";
 
 export class UpdatePatientController {
   async handle(request: Request, response: Response) {
-    const patientId = request.params.id as string;
-
+    const { id: patientId } = request.params as { id: string };
     const {
       nome,
       dataNascimento,
+
+      cpf,
+      rg,
+      cartaoSus,
+      fotoUrl,
+      quartoLeito,
+      genero,
+
       responsavel,
       telefone,
+      responsavelCpf,
+      responsavelGrauParentesco,
+      responsavelEmail,
+      responsavelEndereco,
+
+      tipoSanguineo,
+      planoSaude,
+      contatoEmergencia,
+      grauDependencia,
+
       historicoMedico,
       medicamentos,
       alergias,
       diagnosticos,
+      restricaoAlimentar,
       observacoes,
     } = request.body;
 
@@ -37,18 +55,39 @@ export class UpdatePatientController {
       },
       data: {
         nome,
+
         dataNascimento: dataNascimento
           ? new Date(dataNascimento)
           : undefined,
+
+        cpf,
+        rg,
+        cartaoSus,
+        fotoUrl,
+        quartoLeito,
+        genero,
+
         responsavel,
         telefone,
+        responsavelCpf,
+        responsavelGrauParentesco,
+        responsavelEmail,
+        responsavelEndereco,
+
+        tipoSanguineo,
+        planoSaude,
+        contatoEmergencia,
+        grauDependencia,
+
         historicoMedico,
         medicamentos,
         alergias,
         diagnosticos,
+        restricaoAlimentar,
         observacoes,
       },
     });
+
     await createAuditLog({
       userId: request.user!.id,
       acao: AuditActions.UPDATE,
