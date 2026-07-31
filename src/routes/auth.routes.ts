@@ -73,6 +73,9 @@ import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvol
 import { ExportVitalSignsPdfController } from "../controllers/reports/ExportVitalSignsPdfController";
 import { ListAllVitalSignsController } from "../controllers/ListAllVitalSignsController";
 import { GetLatestVitalSignController } from "../controllers/DeleteVitalSignController";
+import { GetLatestPatientNutritionalAssessmentController } from "../controllers/GetLatestPatientNutritionalAssessmentController";
+import { UpdateNutritionalAssessmentController } from "../controllers/UpdateNutritionalAssessmentController";
+import { DeleteNutritionalAssessmentController } from "../controllers/DeleteNutritionalAssessmentController";
 
 const authRoutes = Router();
 
@@ -1301,5 +1304,11 @@ authRoutes.get(
   roleMiddleware("admin"), 
   exportAuditLogsController.handle
 );
+
+authRoutes.post("/nutritional-assessments", new CreateNutritionalAssessmentController().handle);
+authRoutes.get("/patients/:id/nutritional-assessments", new ListPatientNutritionalAssessmentsController().handle);
+authRoutes.get("/patients/:id/nutritional-assessments/latest", new GetLatestPatientNutritionalAssessmentController().handle);
+authRoutes.put("/nutritional-assessments/:id", new UpdateNutritionalAssessmentController().handle);
+authRoutes.delete("/nutritional-assessments/:id", new DeleteNutritionalAssessmentController().handle);
 
 export { authRoutes };
