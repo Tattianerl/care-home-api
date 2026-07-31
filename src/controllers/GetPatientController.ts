@@ -7,25 +7,28 @@ export class GetPatientController {
     const id = request.params.id as string;
 
     const patient = await prisma.patient.findFirst({
-      where: {
-        id,
-        ativo: true,
+  where: {
+    id,
+    ativo: true,
+  },
+  include: {
+    evolutions: {
+      orderBy: {
+        createdAt: "desc",
       },
       include: {
-        evolutions: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                nome: true,
-                email: true,
-                cargo: true,
-              },
-            },
+        user: {
+          select: {
+            id: true,
+            nome: true,
+            email: true,
+            cargo: true,
           },
         },
       },
-    });
+    },
+  },
+});
 
     if (!patient) {
       return response.status(404).json({
