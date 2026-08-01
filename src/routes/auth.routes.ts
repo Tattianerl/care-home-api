@@ -76,6 +76,7 @@ import { GetLatestVitalSignController } from "../controllers/DeleteVitalSignCont
 import { GetLatestPatientNutritionalAssessmentController } from "../controllers/GetLatestPatientNutritionalAssessmentController";
 import { UpdateNutritionalAssessmentController } from "../controllers/UpdateNutritionalAssessmentController";
 import { DeleteNutritionalAssessmentController } from "../controllers/DeleteNutritionalAssessmentController";
+import { GetTodayNutritionalAssessmentsController } from "../controllers/GetTodayNutritionalAssessmentsController";
 
 const authRoutes = Router();
 
@@ -1310,5 +1311,6 @@ authRoutes.get("/patients/:id/nutritional-assessments", new ListPatientNutrition
 authRoutes.get("/patients/:id/nutritional-assessments/latest", new GetLatestPatientNutritionalAssessmentController().handle);
 authRoutes.put("/nutritional-assessments/:id", new UpdateNutritionalAssessmentController().handle);
 authRoutes.delete("/nutritional-assessments/:id", new DeleteNutritionalAssessmentController().handle);
+authRoutes.get("/nutritional-assessments/today", new GetTodayNutritionalAssessmentsController().handle);
 
 export { authRoutes };
