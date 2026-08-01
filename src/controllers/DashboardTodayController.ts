@@ -22,6 +22,7 @@ export class DashboardTodayController {
       evolucoesHoje,
       documentosHoje,
       sinaisVitaisHoje,
+      avaliacoesNutricionaisHoje,
 
       ultimosPacientes,
       ultimasEvolucoes,
@@ -104,7 +105,15 @@ export class DashboardTodayController {
         },
       }),
 
-
+      // Avaliações nutricionais realizadas hoje
+      prisma.nutritionalAssessment.count({
+        where: {
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      }),
 
       // Últimos pacientes cadastrados
       prisma.patient.findMany({
@@ -277,35 +286,24 @@ export class DashboardTodayController {
     return response.status(200).json({
 
       pacientesAtivos,
-
       profissionaisAtivos,
 
 
       atendimentosHoje,
-
       proximosAtendimentos,
 
-
       evolucoesHoje,
-
       documentosHoje,
 
       sinaisVitaisHoje,
-
-
+      avaliacoesNutricionaisHoje,
 
       ultimosPacientes,
-
       ultimasEvolucoes,
-
       proximosAtendimentosDetalhados,
 
-
       pendencias,
-
-
       atividadeRecente,
-
 
       dataReferencia: today,
 
