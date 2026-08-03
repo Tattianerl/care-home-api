@@ -19,14 +19,17 @@ export class ListEvolutionsController {
       where.patientId = String(patientId);
     }
 
-    // Profissional
+    // Profissional (Agora busca por ID, Nome OU Cargo)
     if (professional) {
+      const profValue = String(professional);
+
       where.user = {
         is: {
-          nome: {
-            contains: String(professional),
-            mode: "insensitive",
-          },
+          OR: [
+            { id: profValue },
+            { nome: { contains: profValue, mode: "insensitive" } },
+            { cargo: { contains: profValue, mode: "insensitive" } },
+          ],
         },
       };
     }
