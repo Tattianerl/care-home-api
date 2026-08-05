@@ -9,16 +9,28 @@ datasource db {
 }
 
 model User {
-  id    String @id @default(uuid())
-  nome  String
-  cpf   String @unique
-  email String @unique
+  id String @id @default(uuid())
+
+  nome     String
+  cpf      String  @unique
+  email    String  @unique
+  telefone String?
+
   senha String
-  cargo String
 
-  assinatura String?
+  cargo UserRole
 
-  ativo     Boolean  @default(true)
+  registroProfissional String?
+  fotoUrl              String?
+  assinatura           String?
+
+  dataAdmissao DateTime?
+
+  observacoes String?
+
+  ativo       Boolean   @default(true)
+  ultimoLogin DateTime?
+
   createdAt DateTime @default(now())
 
   evolutions             Evolution[]
@@ -29,41 +41,49 @@ model User {
 
   auditLogs AuditLog[]
 
+  prescriptions Medication[] @relation("MedicationPrescription")
+
   deletedDocuments PatientDocument[] @relation("DeletedDocuments")
 }
 
 model Patient {
-  id             String   @id @default(uuid())
+  id             String         @id @default(uuid())
   nome           String
   dataNascimento DateTime
-  cpf            String?  @unique
+  cpf            String?        @unique
   rg             String?
+  naturalidade   String?
+  estadoCivil    MaritalStatus?
   cartaoSus      String?
   fotoUrl        String?
-  quartoLeito    String?  
-  genero         String?  
+  quartoLeito    String?
+  genero         Gender         @default(MASCULINO)
 
   responsavel               String
   telefone                  String
   responsavelCpf            String?
-  responsavelGrauParentesco String? 
+  responsavelGrauParentesco String?
   responsavelEmail          String?
   responsavelEndereco       String?
 
-  tipoSanguineo     String?  
-  planoSaude        String?  
-  contatoEmergencia String?  
-  grauDependencia   String?  
+  tipoSanguineo     BloodType?
+  planoSaude        String?
+  contatoEmergencia String?
+  grauDependencia   DependencyLevel?
 
   historicoMedico    String?
-  medicamentos       String?
   alergias           String?
   diagnosticos       String?
-  restricaoAlimentar String? 
+  restricaoAlimentar String?
 
   observacoes String?
 
-  ativo     Boolean  @default(true)
+  ativo    Boolean @default(true)
+  falecido Boolean @default(false)
+
+  dataInternacao DateTime?
+  dataAlta       DateTime?
+
   createdAt DateTime @default(now())
 
   evolutions             Evolution[]
@@ -93,6 +113,8 @@ model PatientDocument {
   nome    String
   arquivo String
 
+  tipo DocumentType
+
   createdAt DateTime @default(now())
 
   deletedAt       DateTime?
@@ -106,14 +128,29 @@ model PatientDocument {
 }
 
 model VitalSign {
-  id                 String   @id @default(uuid())
-  pressao            String
-  temperatura        Float
-  glicemia           Float?
-  frequenciaCardiaca Int?
-  saturacao          Int?
-  observacoes        String?
-  createdAt          DateTime @default(now())
+  id String @id @default(uuid())
+
+  pressaoSistolica  Int
+  pressaoDiastolica Int
+
+  temperatura Float
+
+  frequenciaCardiaca     Int?
+  frequenciaRespiratoria Int?
+
+  saturacao Int?
+
+  glicemia Float?
+
+  peso   Float?
+  altura Float?
+  imc    Float?
+
+  dor Int?
+
+  observacoes String?
+
+  createdAt DateTime @default(now())
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
@@ -123,28 +160,47 @@ model VitalSign {
 }
 
 model Medication {
-  id               String   @id @default(uuid())
+  id String @id @default(uuid())
+
   nome             String
   dosagem          String
   frequencia       String
   viaAdministracao String
-  observacoes      String?
-  createdAt        DateTime @default(now())
+
+  horarios Json?
+
+  inicioTratamento DateTime?
+  fimTratamento    DateTime?
+
+  status MedicationStatus @default(ATIVO)
+
+  controlado  Boolean @default(false)
+  usoContinuo Boolean @default(false)
+
+  observacoes String?
+
+  createdAt DateTime @default(now())
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+
+  prescritoPorId String?
+  prescritoPor   User?   @relation("MedicationPrescription", fields: [prescritoPorId], references: [id])
 }
 
 model Appointment {
-  id          String   @id @default(uuid())
-  titulo      String
-  dataHora    DateTime
+  id       String   @id @default(uuid())
+  titulo   String
+  dataHora DateTime
+
+  local String?
+
   observacoes String?
-  status AppointmentStatus @default(AGENDADO)
-  createdAt   DateTime @default(now())
+  status      AppointmentStatus @default(AGENDADO)
+  createdAt   DateTime          @default(now())
 
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
@@ -153,17 +209,14 @@ model Appointment {
   user   User   @relation(fields: [userId], references: [id])
 }
 
-enum AppointmentStatus {
-  AGENDADO
-  REALIZADO
-  CANCELADO
-}
-
 model NutritionalAssessment {
-  id          String   @id @default(uuid())
-  peso        Float
-  altura      Float
-  imc         Float?
+  id     String @id @default(uuid())
+  peso   Float
+  altura Float
+  imc    Float?
+
+  classificacaoImc String?
+
   observacoes String?
   createdAt   DateTime @default(now())
 
@@ -181,10 +234,80 @@ model AuditLog {
   entidade   String
   entidadeId String
 
+  ip String?
+
   descricao String?
 
   createdAt DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+}
+
+enum AppointmentStatus {
+  AGENDADO
+  REALIZADO
+  CANCELADO
+}
+
+enum MedicationStatus {
+  ATIVO
+  SUSPENSO
+  FINALIZADO
+}
+
+enum UserRole {
+  ADMIN
+  COORDENADOR
+  ENFERMEIRO
+  TECNICO_ENFERMAGEM
+  MEDICO
+  FISIOTERAPEUTA
+  NUTRICIONISTA
+  PSICOLOGO
+  ASSISTENTE_SOCIAL
+  TERAPEUTA_OCUPACIONAL
+  FONOAUDIOLOGO
+  RECEPCAO
+}
+
+enum DocumentType {
+  RECEITA
+  EXAME
+  CONTRATO
+  IDENTIDADE
+  FOTO
+  EVOLUCAO
+  OUTRO
+}
+
+enum DependencyLevel {
+  INDEPENDENTE
+  PARCIAL
+  TOTAL
+}
+
+enum Gender {
+  MASCULINO
+  FEMININO
+  OUTRO
+}
+
+enum BloodType {
+  A_POSITIVO
+  A_NEGATIVO
+  B_POSITIVO
+  B_NEGATIVO
+  AB_POSITIVO
+  AB_NEGATIVO
+  O_POSITIVO
+  O_NEGATIVO
+}
+
+enum MaritalStatus {
+  SOLTEIRO
+  CASADO
+  DIVORCIADO
+  VIUVO
+  UNIAO_ESTAVEL
 }

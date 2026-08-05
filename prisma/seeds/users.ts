@@ -1,101 +1,190 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 export async function seedUsers(prisma: PrismaClient) {
-  // Criptografa a senha uma única vez para otimizar a execução do seed
   const password = await bcrypt.hash("password123", 10);
 
   await prisma.user.createMany({
     data: [
       {
-        id: "usr-doctor-001",
-        nome: "Dra. Helena Souza Ramos",
-        cpf: "111.222.333-44",
-        email: "helena.ramos@carehome.com",
-        senha: password,
-        cargo: "medico",
-        assinatura: "Helena S. Ramos - CRM/RJ 554321",
-        ativo: true,
-        createdAt: new Date("2026-07-01T08:30:00Z")
-      },
-      {
-        id: "usr-nurse-002",
-        nome: "Enf. Roberto Alves Lima",
-        cpf: "222.333.444-55",
-        email: "roberto.lima@carehome.com",
-        senha: password,
-        cargo: "enfermeiro",
-        assinatura: "Roberto A. Lima - COREN/RJ 123.456",
-        ativo: true,
-        createdAt: new Date("2026-07-01T08:45:00Z")
-      },
-      {
-        id: "usr-physio-003",
-        nome: "Dr. Marcos Vinícius Dias",
-        cpf: "333.444.555-66",
-        email: "marcos.dias@carehome.com",
-        senha: password,
-        cargo: "fisioterapeuta",
-        assinatura: "Marcos V. Dias - CREFITO/RJ 9876-F",
-        ativo: true,
-        createdAt: new Date("2026-07-01T09:00:00Z")
-      },
-      {
-        id: "usr-social-004",
-        nome: "Clarice Lispector Fontes",
-        cpf: "444.555.667-77",
-        email: "clarice.fontes@carehome.com",
-        senha: password,
-        cargo: "assistente_social",
-        assinatura: "Clarice L. Fontes - CRESS/RJ 4567",
-        ativo: true,
-        createdAt: new Date("2026-07-01T09:15:00Z")
-      },
-      {
-        id: "usr-nutri-005",
-        nome: "Dra. Patrícia Albuquerque",
-        cpf: "555.666.777-88",
-        email: "patricia.albuquerque@carehome.com",
-        senha: password,
-        cargo: "nutricionista",
-        assinatura: "Patrícia Albuquerque - CRN/RJ 88776",
-        ativo: true,
-        createdAt: new Date("2026-07-01T09:30:00Z")
-      },
-      {
-        id: "usr-care-006",
-        nome: "Carlos Eduardo Santos",
-        cpf: "666.777.888-99",
-        email: "carlos.santos@carehome.com",
-        senha: password,
-        cargo: "tecnico_enfermagem",
-        assinatura: "Carlos E. Santos - COREN/RJ 998.887-TE",
-        ativo: true,
-        createdAt: new Date("2026-07-01T09:45:00Z")
-      },
-      {
-        id: "usr-admin-007",
+        id: "usr-admin-001",
         nome: "Clara Antunes Vieira",
         cpf: "777.888.999-00",
         email: "clara.vieira@carehome.com",
+        telefone: "(21) 99999-0001",
         senha: password,
-        cargo: "admin",
-        assinatura: "Administração Central CareHome",
+        cargo: UserRole.ADMIN,
+        assinatura: "Administração Central Care Home",
+        ultimoLogin: new Date(),
         ativo: true,
-        createdAt: new Date("2026-07-01T08:00:00Z")
+        createdAt: new Date("2026-07-01T08:00:00Z"),
       },
+
       {
-        id: "usr-recep-008",
+        id: "usr-coord-002",
+        nome: "Fernanda Oliveira",
+        cpf: "100.200.300-11",
+        email: "fernanda.oliveira@carehome.com",
+        telefone: "(21) 99999-0002",
+        senha: password,
+        cargo: UserRole.COORDENADOR,
+        assinatura: "Fernanda Oliveira",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T08:10:00Z"),
+      },
+
+      {
+        id: "usr-doctor-003",
+        nome: "Dra. Helena Souza Ramos",
+        cpf: "111.222.333-44",
+        email: "helena.ramos@carehome.com",
+        telefone: "(21) 99999-0003",
+        senha: password,
+        cargo: UserRole.MEDICO,
+        registroProfissional: "CRM/RJ 554321",
+        assinatura: "Helena S. Ramos - CRM/RJ 554321",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T08:30:00Z"),
+      },
+
+      {
+        id: "usr-nurse-004",
+        nome: "Enf. Roberto Alves Lima",
+        cpf: "222.333.444-55",
+        email: "roberto.lima@carehome.com",
+        telefone: "(21) 99999-0004",
+        senha: password,
+        cargo: UserRole.ENFERMEIRO,
+        registroProfissional: "COREN/RJ 123456",
+        assinatura: "Roberto A. Lima - COREN/RJ 123456",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T08:45:00Z"),
+      },
+
+      {
+        id: "usr-tech-005",
+        nome: "Carlos Eduardo Santos",
+        cpf: "666.777.888-99",
+        email: "carlos.santos@carehome.com",
+        telefone: "(21) 99999-0005",
+        senha: password,
+        cargo: UserRole.TECNICO_ENFERMAGEM,
+        registroProfissional: "COREN/RJ 998887-TE",
+        assinatura: "Carlos E. Santos",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T09:00:00Z"),
+      },
+
+      {
+        id: "usr-physio-006",
+        nome: "Dr. Marcos Vinícius Dias",
+        cpf: "333.444.555-66",
+        email: "marcos.dias@carehome.com",
+        telefone: "(21) 99999-0006",
+        senha: password,
+        cargo: UserRole.FISIOTERAPEUTA,
+        registroProfissional: "CREFITO/RJ 9876-F",
+        assinatura: "Marcos V. Dias",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T09:15:00Z"),
+      },
+
+      {
+        id: "usr-nutri-007",
+        nome: "Dra. Patrícia Albuquerque",
+        cpf: "555.666.777-88",
+        email: "patricia.albuquerque@carehome.com",
+        telefone: "(21) 99999-0007",
+        senha: password,
+        cargo: UserRole.NUTRICIONISTA,
+        registroProfissional: "CRN/RJ 88776",
+        assinatura: "Patrícia Albuquerque",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T09:30:00Z"),
+      },
+
+      {
+        id: "usr-social-008",
+        nome: "Clarice Lispector Fontes",
+        cpf: "444.555.666-77",
+        email: "clarice.fontes@carehome.com",
+        telefone: "(21) 99999-0008",
+        senha: password,
+        cargo: UserRole.ASSISTENTE_SOCIAL,
+        registroProfissional: "CRESS/RJ 4567",
+        assinatura: "Clarice L. Fontes",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T09:45:00Z"),
+      },
+
+      {
+        id: "usr-psico-009",
+        nome: "Juliana Mendes",
+        cpf: "321.654.987-10",
+        email: "juliana.mendes@carehome.com",
+        telefone: "(21) 99999-0009",
+        senha: password,
+        cargo: UserRole.PSICOLOGO,
+        registroProfissional: "CRP/RJ 12345",
+        assinatura: "Juliana Mendes",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T10:00:00Z"),
+      },
+
+      {
+        id: "usr-fono-010",
+        nome: "Luciana Pereira",
+        cpf: "456.123.789-55",
+        email: "luciana.pereira@carehome.com",
+        telefone: "(21) 99999-0010",
+        senha: password,
+        cargo: UserRole.FONOAUDIOLOGO,
+        registroProfissional: "CRFa/RJ 6789",
+        assinatura: "Luciana Pereira",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T10:15:00Z"),
+      },
+
+      {
+        id: "usr-terap-011",
+        nome: "Ricardo Nogueira",
+        cpf: "852.741.963-20",
+        email: "ricardo.nogueira@carehome.com",
+        telefone: "(21) 99999-0011",
+        senha: password,
+        cargo: UserRole.TERAPEUTA_OCUPACIONAL,
+        registroProfissional: "CREFITO/RJ TO-1122",
+        assinatura: "Ricardo Nogueira",
+        ultimoLogin: new Date(),
+        ativo: true,
+        createdAt: new Date("2026-07-01T10:30:00Z"),
+      },
+
+      {
+        id: "usr-recep-012",
         nome: "Mariana Costa Silva",
         cpf: "888.999.000-11",
         email: "mariana.silva@carehome.com",
+        telefone: "(21) 99999-0012",
         senha: password,
-        cargo: "recepcao",
+        cargo: UserRole.RECEPCAO,
         assinatura: null,
+        ultimoLogin: new Date(),
         ativo: true,
-        createdAt: new Date("2026-07-01T08:15:00Z")
-      }
+        createdAt: new Date("2026-07-01T10:45:00Z"),
+      },
     ],
     skipDuplicates: true,
   });
+
+  console.log("✅ Usuários criados com sucesso.");
 }
