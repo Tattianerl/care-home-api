@@ -8,11 +8,17 @@ export class CreateVitalSignController {
     const patientId = request.params.id as string;
 
     const {
-      pressao,
+      pressaoSistolica,
+      pressaoDiastolica,
       temperatura,
-      glicemia,
       frequenciaCardiaca,
+      frequenciaRespiratoria,
       saturacao,
+      glicemia,
+      peso,
+      altura,
+      imc,
+      dor,
       observacoes,
     } = request.body;
 
@@ -32,11 +38,17 @@ export class CreateVitalSignController {
 
     const vitalSign = await prisma.vitalSign.create({
       data: {
-        pressao,
+        pressaoSistolica,
+        pressaoDiastolica,
         temperatura,
-        glicemia,
         frequenciaCardiaca,
+        frequenciaRespiratoria,
         saturacao,
+        glicemia,
+        peso,
+        altura,
+        imc,
+        dor,
         observacoes,
         patientId,
         userId: userId as string,
@@ -44,7 +56,7 @@ export class CreateVitalSignController {
     });
 
     await createAuditLog({
-      userId: request.user!.id,
+      userId: userId as string,
       acao: AuditActions.CREATE,
       entidade: "VITAL_SIGN",
       entidadeId: vitalSign.id,

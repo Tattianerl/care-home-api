@@ -3,7 +3,6 @@ import { prisma } from "../lib/prisma";
 
 export class PatientTimelineController {
   async handle(request: Request, response: Response) {
-
     const patientId = request.params.id as string;
 
     const patient = await prisma.patient.findUnique({
@@ -52,40 +51,48 @@ export class PatientTimelineController {
     ]);
 
     const timeline = [
-      ...evolutions.map(item => ({
+      ...evolutions.map((item) => ({
         tipo: "EVOLUTION",
         data: item.createdAt,
         descricao: item.descricao,
       })),
 
-      ...vitalSigns.map(item => ({
+      ...vitalSigns.map((item) => ({
         tipo: "VITAL_SIGN",
         data: item.createdAt,
-        descricao: `PA ${item.pressao} | Temp ${item.temperatura}°C`,
+        descricao:
+          `PA ${item.pressaoSistolica}/${item.pressaoDiastolica} mmHg | ` +
+          `Temp ${item.temperatura}°C` +
+          `${item.saturacao ? ` | Sat ${item.saturacao}%` : ""}` +
+          `${item.frequenciaCardiaca ? ` | FC ${item.frequenciaCardiaca} bpm` : ""}` +
+          `${item.glicemia ? ` | Glicemia ${item.glicemia} mg/dL` : ""}`,
       })),
 
-      ...medications.map(item => ({
+      ...medications.map((item) => ({
         tipo: "MEDICATION",
         data: item.createdAt,
         descricao: `${item.nome} - ${item.dosagem}`,
       })),
 
-      ...documents.map(item => ({
+      ...documents.map((item) => ({
         tipo: "DOCUMENT",
         data: item.createdAt,
-        descricao: item.nome,
+        descricao: `${item.tipo} - ${item.nome}`,
       })),
 
-      ...appointments.map(item => ({
+      ...appointments.map((item) => ({
         tipo: "APPOINTMENT",
         data: item.createdAt,
-        descricao: item.titulo,
+        descricao: `${item.titulo} (${item.status})`,
       })),
 
-      ...nutritionalAssessments.map(item => ({
+      ...nutritionalAssessments.map((item) => ({
         tipo: "NUTRITIONAL_ASSESSMENT",
         data: item.createdAt,
-        descricao: `Peso: ${item.peso}kg`,
+        descricao:
+          `Peso: ${item.peso} kg | ` +
+          `Altura: ${item.altura} m` +
+          `${item.imc ? ` | IMC: ${item.imc.toFixed(1)}` : ""}`,
       })),
     ];
 

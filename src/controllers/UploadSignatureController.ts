@@ -8,7 +8,7 @@ export class UploadSignatureController {
 
     if (!userId) {
       return response.status(401).json({
-        error: "Usuário não autenticado",
+        error: "Usuário não autenticado.",
       });
     }
 
@@ -16,30 +16,45 @@ export class UploadSignatureController {
 
     if (!file) {
       return response.status(400).json({
-        error: "Arquivo não enviado",
+        error: "Nenhum arquivo foi enviado.",
       });
     }
 
-    const fileName = `${Date.now()}-${file.originalname}`;
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/webp",
+    ];
 
-    const { error } = await supabase.storage
+    if (!allowedTypes.includes(file.mimetype)) {
+      return response.status(400).json({
+        error: "Formato inválido. Utilize PNG, JPG ou WEBP.",
+      });
+    }
+
+    const extension = file.originalname.split(".").pop();
+
+    const fileName = `signature-${userId}-${Date.now()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
       .from("signatures")
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
       });
 
-    if (error) {
+    if (uploadError) {
       return response.status(500).json({
-        error: error.message,
+        error: uploadError.message,
       });
     }
 
-    const { data } = supabase.storage
+    const {
+      data: { publicUrl },
+    } = supabase.storage
       .from("signatures")
       .getPublicUrl(fileName);
-
-    const publicUrl = data.publicUrl;
 
     await prisma.user.update({
       where: {
@@ -51,7 +66,7 @@ export class UploadSignatureController {
     });
 
     return response.status(200).json({
-      message: "Assinatura enviada com sucesso",
+      message: "Assinatura enviada com sucesso.",
       assinatura: publicUrl,
     });
   }

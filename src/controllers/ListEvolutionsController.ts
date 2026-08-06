@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Prisma } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 
 export class ListEvolutionsController {
@@ -19,17 +19,35 @@ export class ListEvolutionsController {
       where.patientId = String(patientId);
     }
 
-    // Profissional (Agora busca por ID, Nome OU Cargo)
+    // Profissional (ID, Nome ou Cargo)
     if (professional) {
-      const profValue = String(professional);
+      const profValue = String(professional).trim();
+
+      const role = Object.values(UserRole).find(
+        (item) => item.toLowerCase() === profValue.toLowerCase()
+      );
+
+      const filters: Prisma.UserWhereInput[] = [
+        {
+          id: profValue,
+        },
+        {
+          nome: {
+            contains: profValue,
+            mode: "insensitive",
+          },
+        },
+      ];
+
+      if (role) {
+        filters.push({
+          cargo: role,
+        });
+      }
 
       where.user = {
         is: {
-          OR: [
-            { id: profValue },
-            { nome: { contains: profValue, mode: "insensitive" } },
-            { cargo: { contains: profValue, mode: "insensitive" } },
-          ],
+          OR: filters,
         },
       };
     }
@@ -73,6 +91,7 @@ export class ListEvolutionsController {
             nome: true,
             email: true,
             cargo: true,
+            assinatura: true,
           },
         },
       },

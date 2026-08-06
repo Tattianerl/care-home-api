@@ -26,33 +26,65 @@ export class ExportVitalSignsController {
     });
 
     const csvData = vitalSigns.map((vital) => ({
-        Paciente: vital.patient.nome,
-        Pressao: vital.pressao,
-        Temperatura: `${vital.temperatura} °C`,
-        Glicemia:
-          vital.glicemia !== null
-            ? `${vital.glicemia} mg/dL`
-            : "",
-        FrequenciaCardiaca:
-          vital.frequenciaCardiaca !== null
-            ? `${vital.frequenciaCardiaca} bpm`
-            : "",
-        Saturacao:
-          vital.saturacao !== null
-            ? `${vital.saturacao}%`
-            : "",
-        Observacoes: formatValue(vital.observacoes),
-        Profissional: vital.user.nome,
-        Cargo: vital.user.cargo,
-        Data: formatDate(vital.createdAt),
-      })
-    );
+      Paciente: vital.patient.nome,
+
+      Pressao: `${vital.pressaoSistolica}/${vital.pressaoDiastolica} mmHg`,
+
+      Temperatura: `${vital.temperatura} °C`,
+
+      FrequenciaCardiaca:
+        vital.frequenciaCardiaca !== null
+          ? `${vital.frequenciaCardiaca} bpm`
+          : "",
+
+      FrequenciaRespiratoria:
+        vital.frequenciaRespiratoria !== null
+          ? `${vital.frequenciaRespiratoria} irpm`
+          : "",
+
+      Saturacao:
+        vital.saturacao !== null
+          ? `${vital.saturacao}%`
+          : "",
+
+      Glicemia:
+        vital.glicemia !== null
+          ? `${vital.glicemia} mg/dL`
+          : "",
+
+      Peso:
+        vital.peso !== null
+          ? `${vital.peso} kg`
+          : "",
+
+      Altura:
+        vital.altura !== null
+          ? `${vital.altura} m`
+          : "",
+
+      IMC:
+        vital.imc !== null
+          ? vital.imc.toFixed(2)
+          : "",
+
+      Dor:
+        vital.dor !== null
+          ? `${vital.dor}/10`
+          : "",
+
+      Observacoes: formatValue(vital.observacoes),
+
+      Profissional: vital.user.nome,
+
+      Cargo: vital.user.cargo,
+
+      Data: formatDate(vital.createdAt),
+    }));
+
     return exportCsv(
       response,
       csvData,
       "carehome_sinais_vitais.csv"
     );
-
-    
   }
 }

@@ -51,15 +51,17 @@ export class ListAllVitalSignsController {
 
       if (
         (item.saturacao ?? 100) < 90 ||
-        (item.temperatura ?? 0) >= 39 ||
-        (item.frequenciaCardiaca ?? 0) >= 120
+        item.temperatura >= 39 ||
+        (item.frequenciaCardiaca ?? 0) >= 120 ||
+        item.pressaoSistolica >= 180 ||
+        item.pressaoDiastolica >= 120
       ) {
         calculatedStatus = "critico";
       } else if (
         (item.saturacao ?? 100) < 95 ||
-        (item.temperatura ?? 0) >= 37.8 ||
-        item.pressao.startsWith("14") ||
-        item.pressao.startsWith("15")
+        item.temperatura >= 37.8 ||
+        item.pressaoSistolica >= 140 ||
+        item.pressaoDiastolica >= 90
       ) {
         calculatedStatus = "alerta";
       }
@@ -69,11 +71,20 @@ export class ListAllVitalSignsController {
         patientId: item.patient.id,
         patientName: item.patient.nome,
 
-        pressao: item.pressao,
-        glicemia: item.glicemia,
+        pressaoSistolica: item.pressaoSistolica,
+        pressaoDiastolica: item.pressaoDiastolica,
+        pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
+
         temperatura: item.temperatura,
         frequenciaCardiaca: item.frequenciaCardiaca,
+        frequenciaRespiratoria: item.frequenciaRespiratoria,
         saturacao: item.saturacao,
+        glicemia: item.glicemia,
+        peso: item.peso,
+        altura: item.altura,
+        imc: item.imc,
+        dor: item.dor,
+        observacoes: item.observacoes,
 
         createdAt: item.createdAt,
         status: calculatedStatus,
