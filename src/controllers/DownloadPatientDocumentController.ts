@@ -25,7 +25,6 @@ export class DownloadPatientDocumentController {
     }
 
     // 2. Faz o download do arquivo diretamente do Supabase Storage
-    // Substitua 'seu-nome-de-bucket' pelo nome real do seu bucket no Supabase
     const { data, error } = await supabase.storage
       .from("documents") 
       .download(document.arquivo);
