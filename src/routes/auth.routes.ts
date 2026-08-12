@@ -15,9 +15,6 @@ import { UpdateEvolutionController } from "../controllers/UpdateEvolutionControl
 import { DeleteEvolutionController } from "../controllers/DeleteEvolutionController";
 import { DashboardController } from "../controllers/DashboardController";
 
-import multer from "multer";
-
-
 import { UploadController } from "../controllers/UploadController";
 import { roleMiddleware } from "../middlewares/roleMiddleware";
 import { UploadPatientDocumentController } from "../controllers/UploadPatientDocumentController";
@@ -72,11 +69,16 @@ import { ListAllDocumentsController } from "../controllers/ListAllDocumentsContr
 import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvolutionsPdfController";
 import { ExportVitalSignsPdfController } from "../controllers/reports/ExportVitalSignsPdfController";
 import { ListAllVitalSignsController } from "../controllers/ListAllVitalSignsController";
-import { GetLatestVitalSignController } from "../controllers/DeleteVitalSignController";
+
 import { GetLatestPatientNutritionalAssessmentController } from "../controllers/GetLatestPatientNutritionalAssessmentController";
 import { UpdateNutritionalAssessmentController } from "../controllers/UpdateNutritionalAssessmentController";
 import { DeleteNutritionalAssessmentController } from "../controllers/DeleteNutritionalAssessmentController";
 import { GetTodayNutritionalAssessmentsController } from "../controllers/GetTodayNutritionalAssessmentsController";
+import { UpdateVitalSignController } from "../controllers/UpdateVitalSignController";
+
+import { GetLatestVitalSignController } from "../controllers/GetLatestVitalSignController";
+
+
 
 const authRoutes = Router();
 
@@ -106,8 +108,7 @@ const uploadController = new UploadController();
 const uploadPatientDocumentController = new UploadPatientDocumentController();
 
 const listPatientDocumentsController = new ListPatientDocumentsController();
-const createVitalSignController = new CreateVitalSignController();
-const listPatientVitalSignsController = new ListPatientVitalSignsController();  
+ 
 const createPatientMedicationController = new CreatePatientMedicationController();
 const listPatientMedicationsController = new ListPatientMedicationsController();  
 const generatePatientReportController = new GeneratePatientReportController();
@@ -149,6 +150,11 @@ const toggleUserStatusController = new ToggleUserStatusController();
 
 const exportEvolutionsPdfController = new ExportEvolutionsPdfController;
 const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
+
+const createVitalSignController = new CreateVitalSignController();
+const listPatientVitalSignsController = new ListPatientVitalSignsController();
+const updateVitalSignController = new UpdateVitalSignController();
+
 const listAllVitalSignsController = new ListAllVitalSignsController();
 const getLatestVitalSignController = new GetLatestVitalSignController();
 
@@ -668,6 +674,17 @@ authRoutes.post(
 );
 
 
+authRoutes.put(
+  "/vital-signs/:id",
+  authMiddleware,
+  updateVitalSignController.handle
+);
+
+authRoutes.put(
+  "/vital-signs/:id",
+  authMiddleware,
+  updateVitalSignController.handle
+);
 
 /**
  * @swagger

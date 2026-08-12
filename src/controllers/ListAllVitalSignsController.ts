@@ -1,106 +1,142 @@
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { evaluateVitalStatus } from "../utils/evaluateVitalStatus";
 
 export class ListAllVitalSignsController {
   async handle(request: Request, response: Response) {
-    const { search, status, startDate, endDate } = request.query;
+    try {
+      const {
+        search,
+        status,
+        startDate,
+        endDate,
+      } = request.query;
 
-    const where: any = {};
+      const where: Prisma.VitalSignWhereInput = {};
 
-    // Filtro por período
-    if (startDate && endDate) {
-      where.createdAt = {
-        gte: new Date(String(startDate)),
-        lte: new Date(String(endDate)),
-      };
-    }
-
-    // Filtro por nome do paciente
-    if (search) {
-      where.patient = {
-        nome: {
-          contains: String(search),
-          mode: "insensitive",
-        },
-      };
-    }
-
-    const vitalSigns = await prisma.vitalSign.findMany({
-      where,
-      include: {
-        patient: {
-          select: {
-            id: true,
-            nome: true,
+      if (search) {
+        where.patient = {
+          nome: {
+            contains: String(search),
+            mode: "insensitive",
           },
-        },
-        user: {
-          select: {
-            nome: true,
-            cargo: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    const data = vitalSigns.map((item) => {
-      let calculatedStatus: "normal" | "alerta" | "critico" = "normal";
-
-      if (
-        (item.saturacao ?? 100) < 90 ||
-        item.temperatura >= 39 ||
-        (item.frequenciaCardiaca ?? 0) >= 120 ||
-        item.pressaoSistolica >= 180 ||
-        item.pressaoDiastolica >= 120
-      ) {
-        calculatedStatus = "critico";
-      } else if (
-        (item.saturacao ?? 100) < 95 ||
-        item.temperatura >= 37.8 ||
-        item.pressaoSistolica >= 140 ||
-        item.pressaoDiastolica >= 90
-      ) {
-        calculatedStatus = "alerta";
+        };
       }
 
-      return {
-        id: item.id,
-        patientId: item.patient.id,
-        patientName: item.patient.nome,
+      if (startDate || endDate) {
+        where.createdAt = {};
 
-        pressaoSistolica: item.pressaoSistolica,
-        pressaoDiastolica: item.pressaoDiastolica,
-        pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
+        if (startDate) {
+          where.createdAt.gte = new Date(
+            String(startDate)
+          );
+        }
 
-        temperatura: item.temperatura,
-        frequenciaCardiaca: item.frequenciaCardiaca,
-        frequenciaRespiratoria: item.frequenciaRespiratoria,
-        saturacao: item.saturacao,
-        glicemia: item.glicemia,
-        peso: item.peso,
-        altura: item.altura,
-        imc: item.imc,
-        dor: item.dor,
-        observacoes: item.observacoes,
+        if (endDate) {
+          const end = new Date(
+            String(endDate)
+          );
 
-        createdAt: item.createdAt,
-        status: calculatedStatus,
+          end.setHours(23, 59, 59, 999);
 
-        user: {
-          nome: item.user.nome,
-          cargo: item.user.cargo,
-        },
-      };
-    });
+          where.createdAt.lte = end;
+        }
+      }
 
-    // Filtro pelo status calculado
-    const filteredData = status
-      ? data.filter((item) => item.status === String(status))
-      : data;
+      const vitalSigns =
+        await prisma.vitalSign.findMany({
+          where,
 
-    return response.json(filteredData);
+          include: {
+            patient: {
+              select: {
+                id: true,
+                nome: true,
+              },
+            },
+
+            user: {
+              select: {
+                nome: true,
+                cargo: true,
+              },
+            },
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+      const data = vitalSigns.map((item) => {
+        const statusCalculado =
+          evaluateVitalStatus(item);
+
+        return {
+          id: item.id,
+
+          patientId: item.patient.id,
+          patientName: item.patient.nome,
+
+          pressaoSistolica:
+            item.pressaoSistolica,
+
+          pressaoDiastolica:
+            item.pressaoDiastolica,
+
+          pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
+
+          temperatura: item.temperatura,
+
+          frequenciaCardiaca:
+            item.frequenciaCardiaca,
+
+          frequenciaRespiratoria:
+            item.frequenciaRespiratoria,
+
+          saturacao: item.saturacao,
+
+          glicemia: item.glicemia,
+
+          peso: item.peso,
+
+          altura: item.altura,
+
+          imc: item.imc,
+
+          dor: item.dor,
+
+          observacoes: item.observacoes,
+
+          createdAt: item.createdAt,
+
+          status: statusCalculado,
+
+          user: {
+            nome: item.user.nome,
+            cargo: item.user.cargo,
+          },
+        };
+      });
+
+      const filteredData = status
+        ? data.filter(
+            (item) =>
+              item.status === String(status)
+          )
+        : data;
+
+      return response.json(filteredData);
+    } catch (error) {
+      console.error(
+        "Erro ao listar sinais vitais:",
+        error
+      );
+
+      return response.status(500).json({
+        error: "Erro ao listar sinais vitais.",
+      });
+    }
   }
 }
