@@ -5,38 +5,34 @@ import { AppointmentStatus } from "@prisma/client";
 import { createAuditLog } from "../services/audit/createAuditLog";
 import { AuditActions } from "../constants/auditActions";
 
-
 export class UpdateAppointmentStatusController {
   async handle(request: Request, response: Response) {
-
     const appointmentId = request.params.id as string;
-
     const { status } = request.body;
 
-
     if (
-      !Object.values(AppointmentStatus).includes(status)
+      typeof status !== "string" ||
+      !Object.values(AppointmentStatus).includes(status as AppointmentStatus)
     ) {
       return response.status(400).json({
         error: "Status inválido.",
       });
     }
 
+    const appointmentStatus = status as AppointmentStatus;
 
-    const appointment =
-      await prisma.appointment.findUnique({
-        where: {
-          id: appointmentId,
-        },
-        include: {
-          patient: {
-            select: {
-              nome: true,
-            },
+    const appointment = await prisma.appointment.findUnique({
+      where: {
+        id: appointmentId,
+      },
+      include: {
+        patient: {
+          select: {
+            nome: true,
           },
         },
-      });
-
+      },
+    });
 
     if (!appointment) {
       return response.status(404).json({
@@ -44,27 +40,20 @@ export class UpdateAppointmentStatusController {
       });
     }
 
+    const updatedAppointment = await prisma.appointment.update({
+      where: {
+        id: appointmentId,
+      },
 
-    const updatedAppointment =
-      await prisma.appointment.update({
-
-        where: {
-          id: appointmentId,
-        },
-
-        data: {
-          status,
-        },
-
-      });
-
+      data: {
+        status: appointmentStatus,
+      },
+    });
 
     const userId = request.user?.id;
 
-
     if (userId) {
       await createAuditLog({
-
         userId,
 
         acao: AuditActions.UPDATE,
@@ -77,10 +66,8 @@ export class UpdateAppointmentStatusController {
           `Status do agendamento "${appointment.titulo}" ` +
           `do paciente "${appointment.patient.nome}" ` +
           `alterado para ${status}.`,
-
       });
     }
-
 
     return response.json(updatedAppointment);
   }

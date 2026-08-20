@@ -1,4 +1,4 @@
-import {
+﻿import {
   PrismaClient,
   BloodType,
   DependencyLevel,
@@ -10,8 +10,7 @@ export async function seedPatients(prisma: PrismaClient) {
   await prisma.patient.createMany({
     data: [
       {
-        id: "pat-001",
-
+        id: "22222222-2222-4222-8222-222222222001",
         nome: "Antônio Silva Medeiros",
         dataNascimento: new Date("1945-03-15"),
 
@@ -24,7 +23,6 @@ export async function seedPatients(prisma: PrismaClient) {
         fotoUrl: null,
 
         quartoLeito: "101-A",
-
         genero: Gender.MASCULINO,
 
         responsavel: "Carlos Medeiros",
@@ -32,13 +30,10 @@ export async function seedPatients(prisma: PrismaClient) {
         responsavelCpf: "111.111.111-11",
         responsavelGrauParentesco: "Filho",
         responsavelEmail: "carlos@email.com",
-        responsavelEndereco:
-          "Rua das Palmeiras, 120 - Rio de Janeiro",
+        responsavelEndereco: "Rua das Palmeiras, 120 - Rio de Janeiro",
 
         tipoSanguineo: BloodType.O_POSITIVO,
-
         planoSaude: "Unimed",
-
         contatoEmergencia: "(21) 99999-8888",
 
         grauDependencia: DependencyLevel.PARCIAL,
@@ -48,26 +43,21 @@ export async function seedPatients(prisma: PrismaClient) {
 
         alergias: "Penicilina",
 
-        diagnosticos:
-          "Hipertensão arterial sistêmica.",
+        diagnosticos: "Hipertensão arterial sistêmica.",
 
-        restricaoAlimentar:
-          "Dieta hipossódica.",
+        restricaoAlimentar: "Dieta hipossódica.",
 
-        observacoes:
-          "Necessita auxílio parcial para locomoção.",
+        observacoes: "Necessita auxílio parcial para locomoção.",
 
         ativo: true,
         falecido: false,
 
         dataInternacao: new Date("2026-06-01"),
-
         createdAt: new Date("2026-07-01"),
       },
 
       {
-        id: "pat-002",
-
+        id: "22222222-2222-4222-8222-222222222002",
         nome: "Maria das Dores Camargo",
         dataNascimento: new Date("1938-11-22"),
 
@@ -79,7 +69,6 @@ export async function seedPatients(prisma: PrismaClient) {
         cartaoSus: "898001234567891",
 
         quartoLeito: "102-B",
-
         genero: Gender.FEMININO,
 
         responsavel: "Ana Camargo",
@@ -89,9 +78,7 @@ export async function seedPatients(prisma: PrismaClient) {
         responsavelEmail: "ana@email.com",
 
         tipoSanguineo: BloodType.A_POSITIVO,
-
         planoSaude: "Bradesco Saúde",
-
         contatoEmergencia: "(21) 99999-1111",
 
         grauDependencia: DependencyLevel.TOTAL,
@@ -101,11 +88,9 @@ export async function seedPatients(prisma: PrismaClient) {
 
         alergias: "Nenhuma.",
 
-        diagnosticos:
-          "Doença de Alzheimer.",
+        diagnosticos: "Doença de Alzheimer.",
 
-        restricaoAlimentar:
-          "Alimentos pastosos.",
+        restricaoAlimentar: "Alimentos pastosos.",
 
         observacoes:
           "Apresenta episódios de desorientação no período noturno.",
@@ -114,13 +99,11 @@ export async function seedPatients(prisma: PrismaClient) {
         falecido: false,
 
         dataInternacao: new Date("2026-06-12"),
-
         createdAt: new Date("2026-07-02"),
       },
 
       {
-        id: "pat-003",
-
+        id: "22222222-2222-4222-8222-222222222003",
         nome: "Geraldo Alckmin Faria",
         dataNascimento: new Date("1950-05-30"),
 
@@ -132,7 +115,6 @@ export async function seedPatients(prisma: PrismaClient) {
         cartaoSus: "898001234567892",
 
         quartoLeito: "103-A",
-
         genero: Gender.MASCULINO,
 
         responsavel: "Mariana Faria",
@@ -142,9 +124,7 @@ export async function seedPatients(prisma: PrismaClient) {
         responsavelEmail: "mariana@email.com",
 
         tipoSanguineo: BloodType.B_POSITIVO,
-
         planoSaude: "Amil",
-
         contatoEmergencia: "(21) 98888-4444",
 
         grauDependencia: DependencyLevel.INDEPENDENTE,
@@ -154,26 +134,21 @@ export async function seedPatients(prisma: PrismaClient) {
 
         alergias: "Sulfa.",
 
-        diagnosticos:
-          "Insuficiência cardíaca.",
+        diagnosticos: "Insuficiência cardíaca.",
 
-        restricaoAlimentar:
-          "Baixo teor de gordura.",
+        restricaoAlimentar: "Baixo teor de gordura.",
 
-        observacoes:
-          "Paciente orientado e independente.",
+        observacoes: "Paciente orientado e independente.",
 
         ativo: true,
         falecido: false,
 
         dataInternacao: new Date("2026-06-20"),
-
         createdAt: new Date("2026-07-03"),
       },
 
       {
-        id: "pat-004",
-
+        id: "22222222-2222-4222-8222-222222222004",
         nome: "Francisca Nogueira Abreu",
         dataNascimento: new Date("1935-08-12"),
 
@@ -185,7 +160,6 @@ export async function seedPatients(prisma: PrismaClient) {
         cartaoSus: "898001234567893",
 
         quartoLeito: "104-C",
-
         genero: Gender.FEMININO,
 
         responsavel: "Roberto Abreu",
@@ -195,23 +169,18 @@ export async function seedPatients(prisma: PrismaClient) {
         responsavelEmail: "roberto@email.com",
 
         tipoSanguineo: BloodType.AB_POSITIVO,
-
         planoSaude: "SulAmérica",
-
         contatoEmergencia: "(21) 97777-3333",
 
         grauDependencia: DependencyLevel.TOTAL,
 
-        historicoMedico:
-          "Doença de Parkinson avançada.",
+        historicoMedico: "Doença de Parkinson avançada.",
 
         alergias: "Dipirona.",
 
-        diagnosticos:
-          "Parkinson.",
+        diagnosticos: "Parkinson.",
 
-        restricaoAlimentar:
-          "Dieta pastosa.",
+        restricaoAlimentar: "Dieta pastosa.",
 
         observacoes:
           "Necessita auxílio integral para alimentação e higiene.",
@@ -220,7 +189,6 @@ export async function seedPatients(prisma: PrismaClient) {
         falecido: false,
 
         dataInternacao: new Date("2026-05-15"),
-
         createdAt: new Date("2026-07-04"),
       },
     ],

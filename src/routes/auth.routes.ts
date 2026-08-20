@@ -17,6 +17,7 @@ import { DashboardController } from "../controllers/DashboardController";
 
 import { UploadController } from "../controllers/UploadController";
 import { roleMiddleware } from "../middlewares/roleMiddleware";
+import { UserRole } from "@prisma/client";
 import { UploadPatientDocumentController } from "../controllers/UploadPatientDocumentController";
 import { ListPatientDocumentsController } from "../controllers/ListPatientDocumentsController";
 
@@ -64,6 +65,8 @@ import { ExportPatientsController } from "../controllers/reports/ExportPatientsC
 import { ExportAuditLogsController } from "../controllers/reports/ExportAuditLogsController";
 import { ListAppointmentsController } from "../controllers/ListAppointmentsController";
 import { GetAppointmentController } from "../controllers/GetAppointmentController";
+import { GetMedicationController } from "../controllers/GetMedicationController";
+import { UpdateMedicationController } from "../controllers/UpdateMedicationController";
 import { UpdateAppointmentController } from "../controllers/UpdateAppointmentController";
 import { ListAllDocumentsController } from "../controllers/ListAllDocumentsController";
 import { ExportEvolutionsPdfController } from "../controllers/reports/ExportEvolutionsPdfController";
@@ -77,8 +80,6 @@ import { GetTodayNutritionalAssessmentsController } from "../controllers/GetToda
 import { UpdateVitalSignController } from "../controllers/UpdateVitalSignController";
 
 import { GetLatestVitalSignController } from "../controllers/GetLatestVitalSignController";
-
-
 
 const authRoutes = Router();
 
@@ -108,21 +109,28 @@ const uploadController = new UploadController();
 const uploadPatientDocumentController = new UploadPatientDocumentController();
 
 const listPatientDocumentsController = new ListPatientDocumentsController();
- 
-const createPatientMedicationController = new CreatePatientMedicationController();
-const listPatientMedicationsController = new ListPatientMedicationsController();  
+
+const createPatientMedicationController =
+  new CreatePatientMedicationController();
+const listPatientMedicationsController = new ListPatientMedicationsController();
 const generatePatientReportController = new GeneratePatientReportController();
 
 const createAppointmentController = new CreateAppointmentController();
 const listAppointmentsController = new ListAppointmentsController();
-const listPatientAppointmentsController = new ListPatientAppointmentsController();
-const updateAppointmentStatusController = new UpdateAppointmentStatusController();
+const listPatientAppointmentsController =
+  new ListPatientAppointmentsController();
+const updateAppointmentStatusController =
+  new UpdateAppointmentStatusController();
 const listTodayAppointmentsController = new ListTodayAppointmentsController();
 const getAppointmentController = new GetAppointmentController();
+const getMedicationController = new GetMedicationController();
+const updateMedicationController = new UpdateMedicationController();
 const updateAppointmentController = new UpdateAppointmentController();
 
-const createNutritionalAssessmentController = new CreateNutritionalAssessmentController();
-const listPatientNutritionalAssessmentsController = new ListPatientNutritionalAssessmentsController();
+const createNutritionalAssessmentController =
+  new CreateNutritionalAssessmentController();
+const listPatientNutritionalAssessmentsController =
+  new ListPatientNutritionalAssessmentsController();
 const uploadSignatureController = new UploadSignatureController();
 const getProfileController = new GetProfileController();
 const listAuditLogsController = new ListAuditLogsController();
@@ -138,7 +146,8 @@ const upcomingAppointmentsController = new UpcomingAppointmentsController();
 const dashboardTodayController = new DashboardTodayController();
 
 const listAllDocumentsController = new ListAllDocumentsController();
-const downloadPatientDocumentController = new DownloadPatientDocumentController();
+const downloadPatientDocumentController =
+  new DownloadPatientDocumentController();
 const deletePatientDocumentController = new DeletePatientDocumentController();
 
 const exportPatientsController = new ExportPatientsController();
@@ -148,7 +157,7 @@ const listUsersController = new ListUsersController();
 const updatePasswordController = new UpdatePasswordController();
 const toggleUserStatusController = new ToggleUserStatusController();
 
-const exportEvolutionsPdfController = new ExportEvolutionsPdfController;
+const exportEvolutionsPdfController = new ExportEvolutionsPdfController();
 const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
 
 const createVitalSignController = new CreateVitalSignController();
@@ -181,11 +190,35 @@ const getLatestVitalSignController = new GetLatestVitalSignController();
  *         description: Login realizado com sucesso
  */
 authRoutes.post("/login", loginController.handle);
-authRoutes.post("/register", authMiddleware, roleMiddleware("admin"), registerController.handle);
-authRoutes.patch("/users/admin-reset-password", authMiddleware,resetPasswordByAdminController.handle);
-authRoutes.get("/users", authMiddleware, roleMiddleware("admin"), listUsersController.handle);
-authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
-authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware("admin"), toggleUserStatusController.handle);
+
+authRoutes.post(
+  "/register",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  registerController.handle,
+);
+authRoutes.patch(
+  "/users/admin-reset-password",
+  authMiddleware,
+  resetPasswordByAdminController.handle,
+);
+authRoutes.get(
+  "/users",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  listUsersController.handle,
+);
+authRoutes.put(
+  "/users/update-password",
+  authMiddleware,
+  updatePasswordController.handle,
+);
+authRoutes.patch(
+  "/users/:id/toggle-status",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  toggleUserStatusController.handle,
+);
 
 /**
  * @swagger
@@ -238,7 +271,6 @@ authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware("adm
  */
 authRoutes.post("/patients", authMiddleware, createPatientController.handle);
 
-
 /**
  * @swagger
  * /auth/evolutions:
@@ -269,7 +301,11 @@ authRoutes.post("/patients", authMiddleware, createPatientController.handle);
  *       201:
  *         description: Evolução criada com sucesso
  */
-authRoutes.post("/evolutions", authMiddleware, createEvolutionController.handle);
+authRoutes.post(
+  "/evolutions",
+  authMiddleware,
+  createEvolutionController.handle,
+);
 
 /**
  * @swagger
@@ -299,7 +335,6 @@ authRoutes.post("/evolutions", authMiddleware, createEvolutionController.handle)
  */
 authRoutes.get("/patients", authMiddleware, listPatientsController.handle);
 
-
 /**
  * @swagger
  * /auth/patients/{id}:
@@ -321,13 +356,7 @@ authRoutes.get("/patients", authMiddleware, listPatientsController.handle);
  *       404:
  *         description: Paciente não encontrado
  */
-authRoutes.get(
-  "/patients/:id",
-  authMiddleware,
-  getPatientController.handle
-);
-
-
+authRoutes.get("/patients/:id", authMiddleware, getPatientController.handle);
 
 /**
  * @swagger
@@ -342,11 +371,7 @@ authRoutes.get(
  *       200:
  *         description: Lista de evoluções
  */
-authRoutes.get(
-  "/evolutions",
-  authMiddleware,
-  listEvolutionsController.handle
-);
+authRoutes.get("/evolutions", authMiddleware, listEvolutionsController.handle);
 
 /**
  * @swagger
@@ -370,7 +395,7 @@ authRoutes.get(
 authRoutes.get(
   "/patients/:id/evolutions",
   authMiddleware,
-  listPatientEvolutionsController.handle
+  listPatientEvolutionsController.handle,
 );
 
 /**
@@ -427,10 +452,10 @@ authRoutes.put("/patients/:id", authMiddleware, updatePatientController.handle);
  */
 authRoutes.delete(
   "/patients/:id",
-  authMiddleware, roleMiddleware("admin"),
-  deletePatientController.handle
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  deletePatientController.handle,
 );
-
 
 /**
  * @swagger
@@ -454,9 +479,8 @@ authRoutes.delete(
 authRoutes.put(
   "/evolutions/:id",
   authMiddleware,
-  updateEvolutionController.handle
+  updateEvolutionController.handle,
 );
-
 
 /**
  * @swagger
@@ -481,54 +505,55 @@ authRoutes.put(
  */
 authRoutes.delete(
   "/evolutions/:id",
-  authMiddleware, roleMiddleware("admin"),
-  deleteEvolutionController.handle
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  deleteEvolutionController.handle,
 );
 
 authRoutes.get(
   "/reports/patients",
   authMiddleware,
-  exportPatientsController.handle
-);
+  exportPatientsController.handle,
+)
 
 authRoutes.get(
   "/reports/evolutions",
   authMiddleware,
-  roleMiddleware("admin"),
-  exportEvolutionController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportEvolutionController.handle,
 );
 
 authRoutes.get(
   "/reports/medications",
   authMiddleware,
-  roleMiddleware("admin"),
-  exportMedicationController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportMedicationController.handle,
 );
 
 authRoutes.get(
   "/reports/vital-signs",
   authMiddleware,
-  roleMiddleware("admin"),
-  exportVitalSignsController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportVitalSignsController.handle,
 );
 authRoutes.get(
   "/vital-signs",
   authMiddleware,
-  listAllVitalSignsController.handle
+  listAllVitalSignsController.handle,
 );
 
 authRoutes.get(
   "/reports/documents",
   authMiddleware,
-  roleMiddleware("admin"),
-  exportDocumentsController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportDocumentsController.handle,
 );
 
 authRoutes.get(
   "/reports/audit",
   authMiddleware,
-  roleMiddleware("admin"),
-  exportAuditLogsController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportAuditLogsController.handle,
 );
 /**
  * @swagger
@@ -543,13 +568,7 @@ authRoutes.get(
  *       200:
  *         description: Resumo geral do sistema
  */
-authRoutes.get(
-  "/dashboard",
-  authMiddleware,
-  dashboardController.handle
-);
-
-
+authRoutes.get("/dashboard", authMiddleware, dashboardController.handle);
 
 /**
  * @swagger
@@ -578,9 +597,8 @@ authRoutes.post(
   "/upload",
   authMiddleware,
   upload.single("file"),
-  uploadController.handle
+  uploadController.handle,
 );
-
 
 /**
  * @swagger
@@ -617,9 +635,8 @@ authRoutes.post(
   "/patients/:id/documents",
   authMiddleware,
   upload.single("file"),
-  uploadPatientDocumentController.handle
+  uploadPatientDocumentController.handle,
 );
-
 
 /**
  * @swagger
@@ -643,10 +660,8 @@ authRoutes.post(
 authRoutes.get(
   "/patients/:id/documents",
   authMiddleware,
-  listPatientDocumentsController.handle
+  listPatientDocumentsController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -670,20 +685,13 @@ authRoutes.get(
 authRoutes.post(
   "/patients/:id/vital-signs",
   authMiddleware,
-  createVitalSignController.handle
-);
-
-
-authRoutes.put(
-  "/vital-signs/:id",
-  authMiddleware,
-  updateVitalSignController.handle
+  createVitalSignController.handle,
 );
 
 authRoutes.put(
   "/vital-signs/:id",
   authMiddleware,
-  updateVitalSignController.handle
+  updateVitalSignController.handle,
 );
 
 /**
@@ -708,15 +716,14 @@ authRoutes.put(
 authRoutes.get(
   "/patients/:id/vital-signs",
   authMiddleware,
-  listPatientVitalSignsController.handle
+  listPatientVitalSignsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/vital-signs/latest",
   authMiddleware,
-  getLatestVitalSignController.handle
+  getLatestVitalSignController.handle,
 );
-
 
 /**
  * @swagger
@@ -740,9 +747,8 @@ authRoutes.get(
 authRoutes.post(
   "/patients/:id/medications",
   authMiddleware,
-  createPatientMedicationController.handle
+  createPatientMedicationController.handle,
 );
-
 
 /**
  * @swagger
@@ -766,9 +772,20 @@ authRoutes.post(
 authRoutes.get(
   "/patients/:id/medications",
   authMiddleware,
-  listPatientMedicationsController.handle
+  listPatientMedicationsController.handle,
 );
 
+authRoutes.get(
+  "/medications/:id",
+  authMiddleware,
+  getMedicationController.handle,
+);
+
+authRoutes.put(
+  "/medications/:id",
+  authMiddleware,
+  updateMedicationController.handle,
+);
 
 
 /**
@@ -793,9 +810,8 @@ authRoutes.get(
 authRoutes.get(
   "/patients/:id/report",
   authMiddleware,
-  generatePatientReportController.handle
+  generatePatientReportController.handle,
 );
-
 
 /**
  * @swagger
@@ -834,9 +850,8 @@ authRoutes.get(
 authRoutes.post(
   "/appointments",
   authMiddleware,
-  createAppointmentController.handle
+  createAppointmentController.handle,
 );
-
 
 /**
  * @swagger
@@ -860,10 +875,8 @@ authRoutes.post(
 authRoutes.get(
   "/patients/:id/appointments",
   authMiddleware,
-  listPatientAppointmentsController.handle
+  listPatientAppointmentsController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -897,10 +910,8 @@ authRoutes.get(
 authRoutes.patch(
   "/appointments/:id/status",
   authMiddleware,
-  updateAppointmentStatusController.handle
+  updateAppointmentStatusController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -918,17 +929,17 @@ authRoutes.patch(
 authRoutes.get(
   "/appointments/today",
   authMiddleware,
-  listTodayAppointmentsController.handle
+  listTodayAppointmentsController.handle,
 );
 authRoutes.get(
   "/appointments",
   authMiddleware,
-  listAppointmentsController.handle
+  listAppointmentsController.handle,
 );
 authRoutes.put(
   "/appointments/:id",
   authMiddleware,
-  updateAppointmentController.handle
+  updateAppointmentController.handle,
 );
 /**
  * @swagger
@@ -946,10 +957,8 @@ authRoutes.put(
 authRoutes.post(
   "/nutritional-assessments",
   authMiddleware,
-  createNutritionalAssessmentController.handle
+  createNutritionalAssessmentController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -973,10 +982,8 @@ authRoutes.post(
 authRoutes.get(
   "/patients/:id/nutritional-assessments",
   authMiddleware,
-  listPatientNutritionalAssessmentsController.handle
+  listPatientNutritionalAssessmentsController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -1005,15 +1012,10 @@ authRoutes.post(
   "/users/signature",
   authMiddleware,
   upload.single("file"),
-  uploadSignatureController.handle
+  uploadSignatureController.handle,
 );
 
-authRoutes.get(
-  "/me",
-  authMiddleware,
-  getProfileController.handle
-);
-
+authRoutes.get("/me", authMiddleware, getProfileController.handle);
 
 /**
  * @swagger
@@ -1028,13 +1030,7 @@ authRoutes.get(
  *       200:
  *         description: Lista de logs
  */
-authRoutes.get(
-  "/audit-logs",
-  authMiddleware,
-  listAuditLogsController.handle
-);
-
-
+authRoutes.get("/audit-logs", authMiddleware, listAuditLogsController.handle);
 
 /**
  * @swagger
@@ -1052,9 +1048,8 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/patients-by-month",
   authMiddleware,
-  patientsByMonthController.handle
+  patientsByMonthController.handle,
 );
-
 
 /**
  * @swagger
@@ -1081,9 +1076,8 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/evolutions-by-month",
   authMiddleware,
-  evolutionsByMonthController.handle
+  evolutionsByMonthController.handle,
 );
-
 
 /**
  * @swagger
@@ -1101,10 +1095,10 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/appointments-by-month",
   authMiddleware,
-  appointmentsByMonthController.handle
+  appointmentsByMonthController.handle,
 );
 
-authRoutes.get("/documents",  authMiddleware, listAllDocumentsController.handle);
+authRoutes.get("/documents", authMiddleware, listAllDocumentsController.handle);
 
 /**
  * @swagger
@@ -1122,9 +1116,8 @@ authRoutes.get("/documents",  authMiddleware, listAllDocumentsController.handle)
 authRoutes.get(
   "/dashboard/documents-by-month",
   authMiddleware,
-  documentsByMonthController.handle
+  documentsByMonthController.handle,
 );
-
 
 /**
  * @swagger
@@ -1142,9 +1135,8 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/audit-summary",
   authMiddleware,
-  auditSummaryController.handle
+  auditSummaryController.handle,
 );
-
 
 /**
  * @swagger
@@ -1175,9 +1167,8 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/top-users",
   authMiddleware,
-  topUsersController.handle
+  topUsersController.handle,
 );
-
 
 /**
  * @swagger
@@ -1201,10 +1192,8 @@ authRoutes.get(
 authRoutes.get(
   "/patients/:id/timeline",
   authMiddleware,
-  patientTimelineController.handle
+  patientTimelineController.handle,
 );
-
-
 
 /**
  * @swagger
@@ -1222,13 +1211,13 @@ authRoutes.get(
 authRoutes.get(
   "/appointments/upcoming",
   authMiddleware,
-  upcomingAppointmentsController.handle
+  upcomingAppointmentsController.handle,
 );
 
 authRoutes.get(
   "/appointments/:id",
   authMiddleware,
-  getAppointmentController.handle
+  getAppointmentController.handle,
 );
 
 /**
@@ -1247,9 +1236,8 @@ authRoutes.get(
 authRoutes.get(
   "/dashboard/today",
   authMiddleware,
-  dashboardTodayController.handle
+  dashboardTodayController.handle,
 );
-
 
 /**
  * @swagger
@@ -1273,61 +1261,56 @@ authRoutes.get(
 authRoutes.get(
   "/documents/:id/download",
   authMiddleware,
-  downloadPatientDocumentController.handle
+  downloadPatientDocumentController.handle,
 );
 
-
-
-/**
- * @swagger
- * /auth/export/patients:
- *   get:
- *     summary: Exportar pacientes em CSV
- *     tags:
- *       - Export
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Arquivo CSV gerado
- */
-authRoutes.get(
-  "/export/patients",
-  authMiddleware,
-  exportPatientsController.handle
-);
 
 authRoutes.delete(
-  "/documents/:id", 
-  authMiddleware, 
-  roleMiddleware("admin"), 
-  deletePatientDocumentController.handle
+  "/documents/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  deletePatientDocumentController.handle,
 );
 
 authRoutes.get(
   "/reports/evolutions/pdf",
-  authMiddleware,
-  exportEvolutionsPdfController.handle
+  authMiddleware, roleMiddleware(UserRole.ADMIN),
+  exportEvolutionsPdfController.handle,
 );
 
 authRoutes.get(
   "/reports/vitals/pdf",
-  authMiddleware,
-  exportVitalSignsPdfController.handle
+  authMiddleware, roleMiddleware(UserRole.ADMIN),
+  exportVitalSignsPdfController.handle,
 );
 
 authRoutes.get(
   "/export/audit-logs",
   authMiddleware,
-  roleMiddleware("admin"), 
-  exportAuditLogsController.handle
+  roleMiddleware(UserRole.ADMIN),
+  exportAuditLogsController.handle,
+);
+authRoutes.get(
+  "/patients/:id/nutritional-assessments/latest",
+  authMiddleware,
+  new GetLatestPatientNutritionalAssessmentController().handle,
 );
 
-authRoutes.post("/nutritional-assessments", new CreateNutritionalAssessmentController().handle);
-authRoutes.get("/patients/:id/nutritional-assessments", new ListPatientNutritionalAssessmentsController().handle);
-authRoutes.get("/patients/:id/nutritional-assessments/latest", new GetLatestPatientNutritionalAssessmentController().handle);
-authRoutes.put("/nutritional-assessments/:id", new UpdateNutritionalAssessmentController().handle);
-authRoutes.delete("/nutritional-assessments/:id", new DeleteNutritionalAssessmentController().handle);
-authRoutes.get("/nutritional-assessments/today", new GetTodayNutritionalAssessmentsController().handle);
+authRoutes.put(
+  "/nutritional-assessments/:id",
+  authMiddleware,
+  new UpdateNutritionalAssessmentController().handle,
+);
 
+authRoutes.delete(
+  "/nutritional-assessments/:id",
+  authMiddleware,
+  new DeleteNutritionalAssessmentController().handle,
+);
+
+authRoutes.get(
+  "/nutritional-assessments/today",
+  authMiddleware,
+  new GetTodayNutritionalAssessmentsController().handle,
+);
 export { authRoutes };

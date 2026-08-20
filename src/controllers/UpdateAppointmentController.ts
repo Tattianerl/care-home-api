@@ -25,6 +25,7 @@ export class UpdateAppointmentController {
       titulo,
       dataHora,
       observacoes,
+      local,
     } = request.body;
 
 
@@ -131,7 +132,7 @@ export class UpdateAppointmentController {
             appointmentDate,
 
           observacoes,
-
+          local,
         },
 
       });

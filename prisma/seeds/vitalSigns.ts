@@ -6,7 +6,6 @@ export async function seedVitalSigns(prisma: PrismaClient) {
       // ==========================
       // Antônio Medeiros
       // ==========================
-
       {
         id: "vs-001",
         pressaoSistolica: 138,
@@ -17,16 +16,15 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         saturacao: 97,
         glicemia: 154,
         peso: 74.2,
-        altura: 1.70,
+        altura: 1.7,
         imc: 25.7,
         dor: 2,
         observacoes:
           "Paciente acordado, colaborativo, glicemia elevada antes do café.",
-        patientId: "pat-001",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222001",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-01T08:10:00Z"),
       },
-
       {
         id: "vs-002",
         pressaoSistolica: 132,
@@ -37,15 +35,14 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         saturacao: 98,
         glicemia: 132,
         peso: 74,
-        altura: 1.70,
+        altura: 1.7,
         imc: 25.6,
         dor: 1,
         observacoes: "Boa resposta ao tratamento anti-hipertensivo.",
-        patientId: "pat-001",
-        userId: "usr-tech-005",
+        patientId: "22222222-2222-4222-8222-222222222001",
+        userId: "11111111-1111-4111-8111-111111111005",
         createdAt: new Date("2026-07-04T08:00:00Z"),
       },
-
       {
         id: "vs-003",
         pressaoSistolica: 126,
@@ -56,19 +53,18 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         saturacao: 98,
         glicemia: 118,
         peso: 73.8,
-        altura: 1.70,
+        altura: 1.7,
         imc: 25.5,
         dor: 0,
         observacoes: "Parâmetros dentro da normalidade.",
-        patientId: "pat-001",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222001",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-08T08:20:00Z"),
       },
 
       // ==========================
       // Maria das Dores
       // ==========================
-
       {
         id: "vs-004",
         pressaoSistolica: 118,
@@ -84,11 +80,10 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         dor: 0,
         observacoes:
           "Paciente desorientada no tempo, sinais vitais estáveis.",
-        patientId: "pat-002",
-        userId: "usr-tech-005",
+        patientId: "22222222-2222-4222-8222-222222222002",
+        userId: "11111111-1111-4111-8111-111111111005",
         createdAt: new Date("2026-07-02T09:00:00Z"),
       },
-
       {
         id: "vs-005",
         pressaoSistolica: 116,
@@ -103,11 +98,10 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 23.6,
         dor: 0,
         observacoes: "Paciente tranquila durante aferição.",
-        patientId: "pat-002",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222002",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-06T09:15:00Z"),
       },
-
       {
         id: "vs-006",
         pressaoSistolica: 120,
@@ -117,20 +111,19 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         frequenciaRespiratoria: 18,
         saturacao: 96,
         glicemia: 101,
-        peso: 58.0,
+        peso: 58,
         altura: 1.57,
         imc: 23.5,
         dor: 1,
         observacoes: "Sem alterações importantes.",
-        patientId: "pat-002",
-        userId: "usr-tech-005",
+        patientId: "22222222-2222-4222-8222-222222222002",
+        userId: "11111111-1111-4111-8111-111111111005",
         createdAt: new Date("2026-07-10T09:00:00Z"),
       },
 
       // ==========================
       // Geraldo
       // ==========================
-
       {
         id: "vs-007",
         pressaoSistolica: 145,
@@ -145,11 +138,10 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 27.1,
         dor: 3,
         observacoes: "Refere leve cansaço aos esforços.",
-        patientId: "pat-003",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222003",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-03T10:30:00Z"),
       },
-
       {
         id: "vs-008",
         pressaoSistolica: 138,
@@ -161,14 +153,13 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         glicemia: 108,
         peso: 81.8,
         altura: 1.74,
-        imc: 27.0,
+        imc: 27,
         dor: 1,
         observacoes: "Melhora clínica após ajuste medicamentoso.",
-        patientId: "pat-003",
-        userId: "usr-tech-005",
+        patientId: "22222222-2222-4222-8222-222222222003",
+        userId: "11111111-1111-4111-8111-111111111005",
         createdAt: new Date("2026-07-07T10:20:00Z"),
       },
-
       {
         id: "vs-009",
         pressaoSistolica: 132,
@@ -183,15 +174,14 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 26.9,
         dor: 0,
         observacoes: "Paciente estável.",
-        patientId: "pat-003",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222003",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-11T10:00:00Z"),
       },
 
       // ==========================
       // Francisca
       // ==========================
-
       {
         id: "vs-010",
         pressaoSistolica: 124,
@@ -206,11 +196,10 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 23.3,
         dor: 2,
         observacoes: "Paciente apresenta tremores leves.",
-        patientId: "pat-004",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222004",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-04T08:40:00Z"),
       },
-
       {
         id: "vs-011",
         pressaoSistolica: 122,
@@ -225,11 +214,10 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 23.2,
         dor: 1,
         observacoes: "Aceitou dieta normalmente.",
-        patientId: "pat-004",
-        userId: "usr-tech-005",
+        patientId: "22222222-2222-4222-8222-222222222004",
+        userId: "11111111-1111-4111-8111-111111111005",
         createdAt: new Date("2026-07-08T08:30:00Z"),
       },
-
       {
         id: "vs-012",
         pressaoSistolica: 120,
@@ -244,8 +232,8 @@ export async function seedVitalSigns(prisma: PrismaClient) {
         imc: 23.2,
         dor: 0,
         observacoes: "Paciente estável.",
-        patientId: "pat-004",
-        userId: "usr-nurse-004",
+        patientId: "22222222-2222-4222-8222-222222222004",
+        userId: "11111111-1111-4111-8111-111111111004",
         createdAt: new Date("2026-07-12T08:25:00Z"),
       },
     ],

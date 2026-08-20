@@ -7,7 +7,7 @@ export async function seedUsers(prisma: PrismaClient) {
   await prisma.user.createMany({
     data: [
       {
-        id: "usr-admin-001",
+        id: "11111111-1111-4111-8111-111111111001",
         nome: "Clara Antunes Vieira",
         cpf: "777.888.999-00",
         email: "clara.vieira@carehome.com",
@@ -19,9 +19,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T08:00:00Z"),
       },
-
       {
-        id: "usr-coord-002",
+        id: "11111111-1111-4111-8111-111111111002",
         nome: "Fernanda Oliveira",
         cpf: "100.200.300-11",
         email: "fernanda.oliveira@carehome.com",
@@ -33,9 +32,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T08:10:00Z"),
       },
-
       {
-        id: "usr-doctor-003",
+        id: "11111111-1111-4111-8111-111111111003",
         nome: "Dra. Helena Souza Ramos",
         cpf: "111.222.333-44",
         email: "helena.ramos@carehome.com",
@@ -48,9 +46,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T08:30:00Z"),
       },
-
       {
-        id: "usr-nurse-004",
+        id: "11111111-1111-4111-8111-111111111004",
         nome: "Enf. Roberto Alves Lima",
         cpf: "222.333.444-55",
         email: "roberto.lima@carehome.com",
@@ -63,9 +60,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T08:45:00Z"),
       },
-
       {
-        id: "usr-tech-005",
+        id: "11111111-1111-4111-8111-111111111005",
         nome: "Carlos Eduardo Santos",
         cpf: "666.777.888-99",
         email: "carlos.santos@carehome.com",
@@ -78,9 +74,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T09:00:00Z"),
       },
-
       {
-        id: "usr-physio-006",
+        id: "11111111-1111-4111-8111-111111111006",
         nome: "Dr. Marcos Vinícius Dias",
         cpf: "333.444.555-66",
         email: "marcos.dias@carehome.com",
@@ -93,9 +88,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T09:15:00Z"),
       },
-
       {
-        id: "usr-nutri-007",
+        id: "11111111-1111-4111-8111-111111111007",
         nome: "Dra. Patrícia Albuquerque",
         cpf: "555.666.777-88",
         email: "patricia.albuquerque@carehome.com",
@@ -108,9 +102,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T09:30:00Z"),
       },
-
       {
-        id: "usr-social-008",
+        id: "11111111-1111-4111-8111-111111111008",
         nome: "Clarice Lispector Fontes",
         cpf: "444.555.666-77",
         email: "clarice.fontes@carehome.com",
@@ -123,9 +116,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T09:45:00Z"),
       },
-
       {
-        id: "usr-psico-009",
+        id: "11111111-1111-4111-8111-111111111009",
         nome: "Juliana Mendes",
         cpf: "321.654.987-10",
         email: "juliana.mendes@carehome.com",
@@ -138,9 +130,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T10:00:00Z"),
       },
-
       {
-        id: "usr-fono-010",
+        id: "11111111-1111-4111-8111-111111111010",
         nome: "Luciana Pereira",
         cpf: "456.123.789-55",
         email: "luciana.pereira@carehome.com",
@@ -153,9 +144,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T10:15:00Z"),
       },
-
       {
-        id: "usr-terap-011",
+        id: "11111111-1111-4111-8111-111111111011",
         nome: "Ricardo Nogueira",
         cpf: "852.741.963-20",
         email: "ricardo.nogueira@carehome.com",
@@ -168,9 +158,8 @@ export async function seedUsers(prisma: PrismaClient) {
         ativo: true,
         createdAt: new Date("2026-07-01T10:30:00Z"),
       },
-
       {
-        id: "usr-recep-012",
+        id: "11111111-1111-4111-8111-111111111012",
         nome: "Mariana Costa Silva",
         cpf: "888.999.000-11",
         email: "mariana.silva@carehome.com",

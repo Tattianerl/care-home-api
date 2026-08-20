@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 
-export async function seedNutritionalAssessments(prisma: PrismaClient) {
+export async function seedNutritionalAssessments(
+  prisma: PrismaClient,
+) {
   await prisma.nutritionalAssessment.createMany({
     data: [
       {
@@ -11,8 +13,8 @@ export async function seedNutritionalAssessments(prisma: PrismaClient) {
         classificacaoImc: "Peso adequado",
         observacoes:
           "Peso estável em relação ao mês anterior. Manter dieta atual.",
-        patientId: "pat-001",
-        userId: "usr-nutri-007",
+        patientId: "22222222-2222-4222-8222-222222222001",
+        userId: "11111111-1111-4111-8111-111111111007",
         createdAt: new Date("2026-07-18T11:05:00Z"),
       },
 
@@ -24,8 +26,8 @@ export async function seedNutritionalAssessments(prisma: PrismaClient) {
         classificacaoImc: "Peso adequado",
         observacoes:
           "Triagem aponta risco leve de perda ponderal. Iniciar suplemento proteico no lanche.",
-        patientId: "pat-002",
-        userId: "usr-nutri-007",
+        patientId: "22222222-2222-4222-8222-222222222002",
+        userId: "11111111-1111-4111-8111-111111111007",
         createdAt: new Date("2026-07-10T09:30:00Z"),
       },
     ],

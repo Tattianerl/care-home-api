@@ -10,6 +10,7 @@ export class CreateAppointmentController {
       titulo,
       dataHora,
       observacoes,
+      local,
       patientId,
     } = request.body;
 
@@ -53,6 +54,7 @@ export class CreateAppointmentController {
         titulo,
         dataHora: appointmentDate,
         observacoes,
+        local,
         patientId,
         userId,
       },

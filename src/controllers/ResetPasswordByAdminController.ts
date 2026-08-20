@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { hash } from "bcryptjs";
+import { UserRole } from "@prisma/client";
 import { prisma } from "../lib/prisma"; 
 
 export class ResetPasswordByAdminController {
@@ -7,11 +8,18 @@ export class ResetPasswordByAdminController {
     
     const { funcionarioId, novaSenhaProvisoria } = request.body;
     
-    // O seu authMiddleware precisa ter injetado o usuário logado em request.user
-    const adminCargo = (request as any).user?.cargo; 
+    const user = request.user;
+
+    if (!user || !user.cargo) {
+      return response.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
+    const adminCargo = String(user.cargo).toUpperCase();
 
     // 2. Bloqueio de segurança: Apenas administradores podem usar esta rota
-    if (adminCargo !== "admin") {
+    if (adminCargo !== UserRole.ADMIN) {
       return response.status(403).json({ 
         error: "Acesso negado. Apenas administradores podem resetar senhas." 
       });

@@ -6,12 +6,15 @@ import { AuditActions } from "../constants/auditActions";
 export class UpdatePatientController {
   async handle(request: Request, response: Response) {
     const { id: patientId } = request.params as { id: string };
+
     const {
       nome,
       dataNascimento,
 
       cpf,
       rg,
+      naturalidade,
+      estadoCivil,
       cartaoSus,
       fotoUrl,
       quartoLeito,
@@ -30,11 +33,13 @@ export class UpdatePatientController {
       grauDependencia,
 
       historicoMedico,
-      medicamentos,
       alergias,
       diagnosticos,
       restricaoAlimentar,
       observacoes,
+
+      dataInternacao,
+      dataAlta,
     } = request.body;
 
     const patientExists = await prisma.patient.findUnique({
@@ -62,6 +67,8 @@ export class UpdatePatientController {
 
         cpf,
         rg,
+        naturalidade,
+        estadoCivil,
         cartaoSus,
         fotoUrl,
         quartoLeito,
@@ -80,11 +87,18 @@ export class UpdatePatientController {
         grauDependencia,
 
         historicoMedico,
-        medicamentos,
         alergias,
         diagnosticos,
         restricaoAlimentar,
         observacoes,
+
+        dataInternacao: dataInternacao
+          ? new Date(dataInternacao)
+          : undefined,
+
+        dataAlta: dataAlta
+          ? new Date(dataAlta)
+          : undefined,
       },
     });
 
@@ -95,7 +109,6 @@ export class UpdatePatientController {
       entidadeId: patient.id,
       descricao: `Paciente ${patient.nome} atualizado`,
     });
-
     return response.json(patient);
   }
 }

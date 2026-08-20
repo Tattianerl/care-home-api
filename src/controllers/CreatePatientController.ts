@@ -11,6 +11,8 @@ export class CreatePatientController {
 
       cpf,
       rg,
+      naturalidade,
+      estadoCivil,
       cartaoSus,
       fotoUrl,
       quartoLeito,
@@ -29,11 +31,13 @@ export class CreatePatientController {
       grauDependencia,
 
       historicoMedico,
-      medicamentos,
       alergias,
       diagnosticos,
       restricaoAlimentar,
       observacoes,
+
+      dataInternacao,
+      dataAlta,
     } = request.body;
 
     const patient = await prisma.patient.create({
@@ -43,6 +47,8 @@ export class CreatePatientController {
 
         cpf,
         rg,
+        naturalidade,
+        estadoCivil,
         cartaoSus,
         fotoUrl,
         quartoLeito,
@@ -61,11 +67,13 @@ export class CreatePatientController {
         grauDependencia,
 
         historicoMedico,
-        medicamentos,
         alergias,
         diagnosticos,
         restricaoAlimentar,
         observacoes,
+
+        dataInternacao: dataInternacao ? new Date(dataInternacao) : undefined,
+        dataAlta: dataAlta ? new Date(dataAlta) : undefined,
       },
     });
 
