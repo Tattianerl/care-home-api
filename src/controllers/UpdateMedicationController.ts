@@ -25,28 +25,45 @@ const allowedMedicationFields = new Set([
   "prescritoPorId",
 ]);
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
 const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 function isMedicationRequestBody(
   value: unknown,
 ): value is MedicationRequestBody {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
 }
 
 function isNonEmptyString(value: unknown): value is string {
-  return typeof value === "string" && value.trim().length > 0;
+  return (
+    typeof value === "string" &&
+    value.trim().length > 0
+  );
 }
 
-function isMedicationStatus(value: unknown): value is MedicationStatus {
-  return Object.values(MedicationStatus).some((status) => status === value);
+function isMedicationStatus(
+  value: unknown,
+): value is MedicationStatus {
+  return Object.values(MedicationStatus).some(
+    (status) => status === value,
+  );
 }
 
 function isScheduleArray(value: unknown): value is string[] {
   return (
     Array.isArray(value) &&
-    value.every((item) => typeof item === "string" && timePattern.test(item))
+    value.every(
+      (item) =>
+        typeof item === "string" &&
+        timePattern.test(item),
+    )
   );
 }
 
@@ -58,33 +75,51 @@ function parseMedicationDate(
     return { value: null };
   }
 
-  if (typeof value !== "string" || !datePattern.test(value)) {
-    return { error: `${fieldName} deve estar no formato YYYY-MM-DD.` };
+  if (
+    typeof value !== "string" ||
+    !datePattern.test(value)
+  ) {
+    return {
+      error: `${fieldName} deve estar no formato YYYY-MM-DD.`,
+    };
   }
 
-  const date = new Date(`${value}T00:00:00.000Z`);
+  const date = new Date(
+    `${value}T00:00:00.000Z`,
+  );
 
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
-    return { error: `${fieldName} deve ser uma data válida.` };
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.toISOString().slice(0, 10) !== value
+  ) {
+    return {
+      error: `${fieldName} deve ser uma data válida.`,
+    };
   }
 
   return { value: date };
 }
 
 export class UpdateMedicationController {
-  async handle(request: Request, response: Response) {
+  async handle(
+    request: Request,
+    response: Response,
+  ) {
     try {
       const { id } = request.params;
 
-      if (!id || Array.isArray(id) || !uuidPattern.test(id)) {
+      // IDs das medicações podem ser UUID ou IDs definidos
+      // pelos seeds, como med-001, med-002 etc.
+      if (!id || Array.isArray(id)) {
         return response.status(400).json({
           error: "ID da medicação inválido.",
         });
       }
 
-      const existingMedication = await prisma.medication.findUnique({
-        where: { id },
-      });
+      const existingMedication =
+        await prisma.medication.findUnique({
+          where: { id },
+        });
 
       if (!existingMedication) {
         return response.status(404).json({
@@ -96,17 +131,22 @@ export class UpdateMedicationController {
 
       if (!isMedicationRequestBody(requestBody)) {
         return response.status(400).json({
-          error: "O corpo da requisicao contem campos nao permitidos.",
+          error:
+            "O corpo da requisição contém campos não permitidos.",
         });
       }
 
-      const hasInvalidField = Object.keys(requestBody).some(
-        (field) => !allowedMedicationFields.has(field),
+      const hasInvalidField = Object.keys(
+        requestBody,
+      ).some(
+        (field) =>
+          !allowedMedicationFields.has(field),
       );
 
       if (hasInvalidField) {
         return response.status(400).json({
-          error: "O corpo da requisicao contem campos nao permitidos.",
+          error:
+            "O corpo da requisição contém campos não permitidos.",
         });
       }
 
@@ -132,7 +172,8 @@ export class UpdateMedicationController {
         !isNonEmptyString(viaAdministracao)
       ) {
         return response.status(400).json({
-          error: "Nome, dosagem, frequência e via de administração são campos obrigatórios.",
+          error:
+            "Nome, dosagem, frequência e via de administração são campos obrigatórios.",
         });
       }
 
@@ -143,19 +184,29 @@ export class UpdateMedicationController {
         viaAdministracao,
       };
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "horarios")) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "horarios",
+        )
+      ) {
         if (horarios === null) {
           data.horarios = Prisma.DbNull;
         } else {
           if (!isScheduleArray(horarios)) {
             return response.status(400).json({
-              error: "Horarios devem ser uma lista de valores no formato HH:mm.",
+              error:
+                "Horários devem ser uma lista de valores no formato HH:mm.",
             });
           }
 
-          if (new Set(horarios).size !== horarios.length) {
+          if (
+            new Set(horarios).size !==
+            horarios.length
+          ) {
             return response.status(400).json({
-              error: "Horarios nao podem conter valores duplicados.",
+              error:
+                "Horários não podem conter valores duplicados.",
             });
           }
 
@@ -163,90 +214,150 @@ export class UpdateMedicationController {
         }
       }
 
-      let finalInicioTratamento = existingMedication.inicioTratamento;
-      let finalFimTratamento = existingMedication.fimTratamento;
+      let finalInicioTratamento =
+        existingMedication.inicioTratamento;
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "inicioTratamento")) {
-        const parsedInicioTratamento = parseMedicationDate(
-          inicioTratamento,
-          "Inicio do tratamento",
-        );
+      let finalFimTratamento =
+        existingMedication.fimTratamento;
+
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "inicioTratamento",
+        )
+      ) {
+        const parsedInicioTratamento =
+          parseMedicationDate(
+            inicioTratamento,
+            "Início do tratamento",
+          );
 
         if ("error" in parsedInicioTratamento) {
-          return response.status(400).json(parsedInicioTratamento);
+          return response
+            .status(400)
+            .json(parsedInicioTratamento);
         }
 
-        finalInicioTratamento = parsedInicioTratamento.value;
-        data.inicioTratamento = parsedInicioTratamento.value;
+        finalInicioTratamento =
+          parsedInicioTratamento.value;
+
+        data.inicioTratamento =
+          parsedInicioTratamento.value;
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "fimTratamento")) {
-        const parsedFimTratamento = parseMedicationDate(
-          fimTratamento,
-          "Fim do tratamento",
-        );
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "fimTratamento",
+        )
+      ) {
+        const parsedFimTratamento =
+          parseMedicationDate(
+            fimTratamento,
+            "Fim do tratamento",
+          );
 
         if ("error" in parsedFimTratamento) {
-          return response.status(400).json(parsedFimTratamento);
+          return response
+            .status(400)
+            .json(parsedFimTratamento);
         }
 
-        finalFimTratamento = parsedFimTratamento.value;
-        data.fimTratamento = parsedFimTratamento.value;
+        finalFimTratamento =
+          parsedFimTratamento.value;
+
+        data.fimTratamento =
+          parsedFimTratamento.value;
       }
 
       if (
         finalInicioTratamento &&
         finalFimTratamento &&
-        finalFimTratamento < finalInicioTratamento
+        finalFimTratamento <
+          finalInicioTratamento
       ) {
         return response.status(400).json({
-          error: "Fim do tratamento nao pode ser anterior ao inicio do tratamento.",
+          error:
+            "Fim do tratamento não pode ser anterior ao início do tratamento.",
         });
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "status")) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "status",
+        )
+      ) {
         if (!isMedicationStatus(status)) {
           return response.status(400).json({
-            error: "Status de medicacao invalido.",
+            error: "Status de medicação inválido.",
           });
         }
 
         data.status = status;
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "controlado")) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "controlado",
+        )
+      ) {
         if (typeof controlado !== "boolean") {
           return response.status(400).json({
-            error: "Controlado deve ser um valor booleano.",
+            error:
+              "Controlado deve ser um valor booleano.",
           });
         }
 
         data.controlado = controlado;
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "usoContinuo")) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "usoContinuo",
+        )
+      ) {
         if (typeof usoContinuo !== "boolean") {
           return response.status(400).json({
-            error: "Uso continuo deve ser um valor booleano.",
+            error:
+              "Uso contínuo deve ser um valor booleano.",
           });
         }
 
         data.usoContinuo = usoContinuo;
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "observacoes")) {
-        if (observacoes !== null && typeof observacoes !== "string") {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "observacoes",
+        )
+      ) {
+        if (
+          observacoes !== null &&
+          typeof observacoes !== "string"
+        ) {
           return response.status(400).json({
-            error: "Observacoes deve ser uma string ou nulo.",
+            error:
+              "Observações deve ser uma string ou nulo.",
           });
         }
 
         data.observacoes = observacoes;
       }
 
-      if (Object.prototype.hasOwnProperty.call(requestBody, "prescritoPorId")) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          requestBody,
+          "prescritoPorId",
+        )
+      ) {
         if (prescritoPorId === null) {
-          data.prescritoPor = { disconnect: true };
+          data.prescritoPor = {
+            disconnect: true,
+          };
         } else {
           if (
             !isNonEmptyString(prescritoPorId) ||
@@ -257,53 +368,67 @@ export class UpdateMedicationController {
             });
           }
 
-          const prescritor = await prisma.user.findUnique({
-            where: { id: prescritoPorId },
-            select: { cargo: true },
-          });
+          const prescritor =
+            await prisma.user.findUnique({
+              where: {
+                id: prescritoPorId,
+              },
+              select: {
+                cargo: true,
+              },
+            });
 
           if (!prescritor) {
             return response.status(404).json({
-              error: "Usuario prescritor nao encontrado.",
+              error:
+                "Usuário prescritor não encontrado.",
             });
           }
 
-          if (prescritor.cargo !== UserRole.MEDICO) {
+          if (
+            prescritor.cargo !== UserRole.MEDICO
+          ) {
             return response.status(403).json({
-              error: "Apenas usuarios com cargo MEDICO podem ser definidos como prescritores.",
+              error:
+                "Apenas usuários com cargo MEDICO podem ser definidos como prescritores.",
             });
           }
 
-          data.prescritoPor = { connect: { id: prescritoPorId } };
+          data.prescritoPor = {
+            connect: {
+              id: prescritoPorId,
+            },
+          };
         }
       }
 
-      const medication = await prisma.medication.update({
-        where: { id },
-        data,
-        include: {
-          patient: {
-            select: {
-              id: true,
-              nome: true,
+      const medication =
+        await prisma.medication.update({
+          where: { id },
+          data,
+          include: {
+            patient: {
+              select: {
+                id: true,
+                nome: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+              },
+            },
+            prescritoPor: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+              },
             },
           },
-          user: {
-            select: {
-              id: true,
-              nome: true,
-              cargo: true,
-            },
-          },
-          prescritoPor: {
-            select: {
-              id: true,
-              nome: true,
-              cargo: true,
-            },
-          },
-        },
-      });
+        });
 
       await createAuditLog({
         userId: request.user!.id,
@@ -313,12 +438,15 @@ export class UpdateMedicationController {
         descricao: `Medicamento ${medication.nome} atualizado para o paciente ${medication.patient.nome}`,
       });
 
-      return response.status(200).json(medication);
+      return response
+        .status(200)
+        .json(medication);
     } catch (error) {
       console.error(error);
 
       return response.status(500).json({
-        error: "Erro ao atualizar medicação.",
+        error:
+          "Erro ao atualizar medicação.",
       });
     }
   }
