@@ -80,6 +80,9 @@ import { GetTodayNutritionalAssessmentsController } from "../controllers/GetToda
 import { UpdateVitalSignController } from "../controllers/UpdateVitalSignController";
 
 import { GetLatestVitalSignController } from "../controllers/GetLatestVitalSignController";
+import { ExportPatientsPdfController } from "../controllers/reports/ExportPatientsPdfController";
+import { ExportMedicationsPdfController } from "../controllers/reports/ExportMedicationsPdfController";
+import { ExportDocumentsPdfController } from "../controllers/reports/ExportDocumentsPdfController";
 
 const authRoutes = Router();
 
@@ -166,7 +169,12 @@ const updateVitalSignController = new UpdateVitalSignController();
 
 const listAllVitalSignsController = new ListAllVitalSignsController();
 const getLatestVitalSignController = new GetLatestVitalSignController();
+const exportPatientsPdfController = new ExportPatientsPdfController();
 
+const exportMedicationsPdfController =
+  new ExportMedicationsPdfController();
+const exportDocumentsPdfController =
+  new ExportDocumentsPdfController();
 /**
  * @swagger
  * /auth/login:
@@ -515,6 +523,11 @@ authRoutes.get(
   authMiddleware,
   exportPatientsController.handle,
 )
+authRoutes.get(
+  "/reports/patients/pdf",
+  authMiddleware,
+  exportPatientsPdfController.handle,
+);
 
 authRoutes.get(
   "/reports/evolutions",
@@ -528,6 +541,12 @@ authRoutes.get(
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
   exportMedicationController.handle,
+);
+authRoutes.get(
+  "/reports/medications/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  exportMedicationsPdfController.handle,
 );
 
 authRoutes.get(
@@ -554,6 +573,13 @@ authRoutes.get(
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
   exportAuditLogsController.handle,
+);
+
+authRoutes.get(
+  "/reports/documents/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  exportDocumentsPdfController.handle,
 );
 /**
  * @swagger
