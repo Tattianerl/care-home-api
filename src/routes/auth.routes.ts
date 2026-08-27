@@ -83,6 +83,7 @@ import { GetLatestVitalSignController } from "../controllers/GetLatestVitalSignC
 import { ExportPatientsPdfController } from "../controllers/reports/ExportPatientsPdfController";
 import { ExportMedicationsPdfController } from "../controllers/reports/ExportMedicationsPdfController";
 import { ExportDocumentsPdfController } from "../controllers/reports/ExportDocumentsPdfController";
+import { ExportAuditPdfController } from "../controllers/reports/ExportAuditPdfController";
 
 const authRoutes = Router();
 
@@ -171,10 +172,10 @@ const listAllVitalSignsController = new ListAllVitalSignsController();
 const getLatestVitalSignController = new GetLatestVitalSignController();
 const exportPatientsPdfController = new ExportPatientsPdfController();
 
-const exportMedicationsPdfController =
-  new ExportMedicationsPdfController();
-const exportDocumentsPdfController =
-  new ExportDocumentsPdfController();
+const exportMedicationsPdfController = new ExportMedicationsPdfController();
+const exportDocumentsPdfController = new ExportDocumentsPdfController();
+
+const exportAuditPdfController = new ExportAuditPdfController();
 /**
  * @swagger
  * /auth/login:
@@ -522,7 +523,7 @@ authRoutes.get(
   "/reports/patients",
   authMiddleware,
   exportPatientsController.handle,
-)
+);
 authRoutes.get(
   "/reports/patients/pdf",
   authMiddleware,
@@ -573,6 +574,13 @@ authRoutes.get(
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
   exportAuditLogsController.handle,
+);
+
+authRoutes.get(
+  "/reports/audit/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
+  exportAuditPdfController.handle,
 );
 
 authRoutes.get(
@@ -812,7 +820,6 @@ authRoutes.put(
   authMiddleware,
   updateMedicationController.handle,
 );
-
 
 /**
  * @swagger
@@ -1290,7 +1297,6 @@ authRoutes.get(
   downloadPatientDocumentController.handle,
 );
 
-
 authRoutes.delete(
   "/documents/:id",
   authMiddleware,
@@ -1300,13 +1306,15 @@ authRoutes.delete(
 
 authRoutes.get(
   "/reports/evolutions/pdf",
-  authMiddleware, roleMiddleware(UserRole.ADMIN),
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
   exportEvolutionsPdfController.handle,
 );
 
 authRoutes.get(
   "/reports/vitals/pdf",
-  authMiddleware, roleMiddleware(UserRole.ADMIN),
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
   exportVitalSignsPdfController.handle,
 );
 
