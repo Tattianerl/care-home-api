@@ -29,19 +29,15 @@ export class DashboardTodayController {
     ] = await Promise.all([
       // Total de pacientes ativos
       prisma.patient.count({
-        where: {
-          ativo: true,
-        },
+        where: { ativo: true },
       }),
 
       // Total de profissionais ativos
       prisma.user.count({
-        where: {
-          ativo: true,
-        },
+        where: { ativo: true },
       }),
 
-      // Atendimentos registrados hoje
+      // Atendimentos do dia de hoje
       prisma.appointment.count({
         where: {
           dataHora: {
@@ -51,19 +47,17 @@ export class DashboardTodayController {
         },
       }),
 
-      // Próximos atendimentos futuros não cancelados
+      // 1. CORREÇÃO: Contagem de próximos atendimentos (A partir do início de HOJE e com status AGENDADO)
       prisma.appointment.count({
         where: {
           dataHora: {
-            gte: today,
+            gte: startOfDay, // Considera desde o início do dia de hoje para frente
           },
-          status: {
-            not: "CANCELADO",
-          },
+          status: "AGENDADO", // Altere se no seu Enum for 'AGENDADO' ou 'PENDENTE'
         },
       }),
 
-      // Evoluções registradas hoje
+      // Evoluções hoje
       prisma.evolution.count({
         where: {
           createdAt: {
@@ -73,7 +67,7 @@ export class DashboardTodayController {
         },
       }),
 
-      // Documentos enviados hoje
+      // Documentos hoje
       prisma.patientDocument.count({
         where: {
           createdAt: {
@@ -83,7 +77,7 @@ export class DashboardTodayController {
         },
       }),
 
-      // Sinais vitais registrados hoje
+      // Sinais vitais hoje
       prisma.vitalSign.count({
         where: {
           createdAt: {
@@ -93,7 +87,7 @@ export class DashboardTodayController {
         },
       }),
 
-      // Avaliações nutricionais realizadas hoje
+      // Nutrição hoje
       prisma.nutritionalAssessment.count({
         where: {
           createdAt: {
@@ -103,56 +97,39 @@ export class DashboardTodayController {
         },
       }),
 
-      // Últimos pacientes cadastrados
+      // Últimos pacientes
       prisma.patient.findMany({
-        where: {
-          ativo: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
+        where: { ativo: true },
+        orderBy: { createdAt: "desc" },
         take: 5,
       }),
 
       // Últimas evoluções
       prisma.evolution.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          patient: { select: { id: true, nome: true } },
+          user: { select: { nome: true, cargo: true } },
+        },
+      }),
+
+      // 2. CORREÇÃO: Lista de próximos atendimentos detalhados
+      prisma.appointment.findMany({
+        where: {
+          dataHora: {
+            gte: startOfDay, // Traz agendamentos de hoje para o futuro
+          },
+          status: "AGENDADO",
+        },
         orderBy: {
-          createdAt: "desc",
+          dataHora: "asc", // Traz os mais próximos primeiro
         },
         take: 5,
         include: {
           patient: {
             select: {
               id: true,
-              nome: true,
-            },
-          },
-          user: {
-            select: {
-              nome: true,
-              cargo: true,
-            },
-          },
-        },
-      }),
-
-      // Próximos atendimentos futuros não cancelados
-      prisma.appointment.findMany({
-        where: {
-          dataHora: {
-            gte: today,
-          },
-          status: {
-            not: "CANCELADO",
-          },
-        },
-        orderBy: {
-          dataHora: "asc",
-        },
-        take: 5,
-        include: {
-          patient: {
-            select: {
               nome: true,
             },
           },
@@ -172,10 +149,7 @@ export class DashboardTodayController {
             },
           },
         },
-        select: {
-          id: true,
-          nome: true,
-        },
+        select: { id: true, nome: true },
         take: 10,
       }),
 
@@ -192,31 +166,20 @@ export class DashboardTodayController {
             },
           },
         },
-        select: {
-          id: true,
-          nome: true,
-        },
+        select: { id: true, nome: true },
         take: 10,
       }),
 
       // Auditoria recente
       prisma.auditLog.findMany({
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: { createdAt: "desc" },
         take: 8,
         include: {
-          user: {
-            select: {
-              nome: true,
-              cargo: true,
-            },
-          },
+          user: { select: { nome: true, cargo: true } },
         },
       }),
     ]);
 
-    // Monta pendências dinamicamente
     const pendencias = [
       ...pacientesSemEvolucaoHoje.map((patient) => ({
         tipo: "EVOLUTION",
