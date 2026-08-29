@@ -11,7 +11,6 @@ export class DashboardTodayController {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
-
     const [
       pacientesAtivos,
       profissionaisAtivos,
@@ -32,17 +31,13 @@ export class DashboardTodayController {
       pacientesSemSinaisVitaisHoje,
 
       atividadeRecente,
-
     ] = await Promise.all([
-
-
-      // Total pacientes ativos
+      // Total de pacientes ativos
       prisma.patient.count({
         where: {
           ativo: true,
         },
       }),
-
 
       // Profissionais ativos
       prisma.user.count({
@@ -51,8 +46,7 @@ export class DashboardTodayController {
         },
       }),
 
-
-      // Atendimentos realizados hoje
+      // Atendimentos registrados hoje
       prisma.appointment.count({
         where: {
           dataHora: {
@@ -62,16 +56,15 @@ export class DashboardTodayController {
         },
       }),
 
-
-      // Próximos atendimentos
+      // Próximos atendimentos de hoje
       prisma.appointment.count({
         where: {
           dataHora: {
             gte: today,
+            lte: endOfDay,
           },
         },
       }),
-
 
       // Evoluções registradas hoje
       prisma.evolution.count({
@@ -83,7 +76,6 @@ export class DashboardTodayController {
         },
       }),
 
-
       // Documentos enviados hoje
       prisma.patientDocument.count({
         where: {
@@ -94,8 +86,7 @@ export class DashboardTodayController {
         },
       }),
 
-
-      // Sinais vitais hoje
+      // Sinais vitais registrados hoje
       prisma.vitalSign.count({
         where: {
           createdAt: {
@@ -117,184 +108,136 @@ export class DashboardTodayController {
 
       // Últimos pacientes cadastrados
       prisma.patient.findMany({
-        where:{
-          ativo:true,
+        where: {
+          ativo: true,
         },
-
-        orderBy:{
-          createdAt:"desc",
+        orderBy: {
+          createdAt: "desc",
         },
-
-        take:5,
+        take: 5,
       }),
-
-
 
       // Últimas evoluções
       prisma.evolution.findMany({
-
-        orderBy:{
-          createdAt:"desc",
+        orderBy: {
+          createdAt: "desc",
         },
-
-        take:5,
-
-        include:{
-          patient:{
-            select:{
-              nome:true,
+        take: 5,
+        include: {
+          patient: {
+            select: {
+              nome: true,
             },
           },
-
-          user:{
-            select:{
-              nome:true,
-              cargo:true,
+          user: {
+            select: {
+              nome: true,
+              cargo: true,
             },
           },
         },
       }),
 
-
-
-      // Próximos atendimentos detalhados
+      // Próximos atendimentos de hoje
       prisma.appointment.findMany({
-
-        where:{
-          dataHora:{
-            gte:today,
+        where: {
+          dataHora: {
+            gte: today,
+            lte: endOfDay,
           },
         },
-
-        orderBy:{
-          dataHora:"asc",
+        orderBy: {
+          dataHora: "asc",
         },
-
-        take:5,
-
-        include:{
-          patient:{
-            select:{
-              nome:true,
+        take: 5,
+        include: {
+          patient: {
+            select: {
+              nome: true,
             },
           },
         },
       }),
-
-
 
       // Pacientes sem evolução hoje
       prisma.patient.findMany({
-
-        where:{
-
-          ativo:true,
-
-          evolutions:{
-            none:{
-              createdAt:{
-                gte:startOfDay,
-                lte:endOfDay,
+        where: {
+          ativo: true,
+          evolutions: {
+            none: {
+              createdAt: {
+                gte: startOfDay,
+                lte: endOfDay,
               },
             },
           },
-
         },
-
-        select:{
-          id:true,
-          nome:true,
+        select: {
+          id: true,
+          nome: true,
         },
-
-        take:10,
+        take: 10,
       }),
-
-
-
 
       // Pacientes sem sinais vitais hoje
       prisma.patient.findMany({
-
-        where:{
-
-          ativo:true,
-
-          vitalSigns:{
-            none:{
-              createdAt:{
-                gte:startOfDay,
-                lte:endOfDay,
+        where: {
+          ativo: true,
+          vitalSigns: {
+            none: {
+              createdAt: {
+                gte: startOfDay,
+                lte: endOfDay,
               },
             },
           },
-
         },
-
-        select:{
-          id:true,
-          nome:true,
+        select: {
+          id: true,
+          nome: true,
         },
-
-        take:10,
+        take: 10,
       }),
-
-
-
 
       // Auditoria recente
       prisma.auditLog.findMany({
-
-        orderBy:{
-          createdAt:"desc",
+        orderBy: {
+          createdAt: "desc",
         },
-
-        take:8,
-
-        include:{
-          user:{
-            select:{
-              nome:true,
-              cargo:true,
+        take: 8,
+        include: {
+          user: {
+            select: {
+              nome: true,
+              cargo: true,
             },
           },
         },
       }),
-
-
     ]);
-
-
 
     // Monta pendências dinamicamente
     const pendencias = [
-
-      ...pacientesSemEvolucaoHoje.map((patient)=>({
-        tipo:"EVOLUTION",
-        mensagem:`${patient.nome} está sem evolução hoje`,
+      ...pacientesSemEvolucaoHoje.map((patient) => ({
+        tipo: "EVOLUTION",
+        mensagem: `${patient.nome} está sem evolução hoje`,
       })),
 
-
-      ...pacientesSemSinaisVitaisHoje.map((patient)=>({
-        tipo:"VITAL_SIGN",
-        mensagem:`${patient.nome} está sem sinais vitais hoje`,
+      ...pacientesSemSinaisVitaisHoje.map((patient) => ({
+        tipo: "VITAL_SIGN",
+        mensagem: `${patient.nome} está sem sinais vitais hoje`,
       })),
-
     ];
 
-
-
     return response.status(200).json({
-
       pacientesAtivos,
       profissionaisAtivos,
-
 
       atendimentosHoje,
       proximosAtendimentos,
 
       evolucoesHoje,
       documentosHoje,
-
       sinaisVitaisHoje,
       avaliacoesNutricionaisHoje,
 
@@ -306,7 +249,6 @@ export class DashboardTodayController {
       atividadeRecente,
 
       dataReferencia: today,
-
     });
   }
 }
