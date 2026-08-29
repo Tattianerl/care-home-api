@@ -14,22 +14,17 @@ export class DashboardTodayController {
     const [
       pacientesAtivos,
       profissionaisAtivos,
-
       atendimentosHoje,
       proximosAtendimentos,
-
       evolucoesHoje,
       documentosHoje,
       sinaisVitaisHoje,
       avaliacoesNutricionaisHoje,
-
       ultimosPacientes,
       ultimasEvolucoes,
       proximosAtendimentosDetalhados,
-
       pacientesSemEvolucaoHoje,
       pacientesSemSinaisVitaisHoje,
-
       atividadeRecente,
     ] = await Promise.all([
       // Total de pacientes ativos
@@ -39,7 +34,7 @@ export class DashboardTodayController {
         },
       }),
 
-      // Profissionais ativos
+      // Total de profissionais ativos
       prisma.user.count({
         where: {
           ativo: true,
@@ -56,12 +51,14 @@ export class DashboardTodayController {
         },
       }),
 
-      // Próximos atendimentos de hoje
+      // Próximos atendimentos futuros não cancelados
       prisma.appointment.count({
         where: {
           dataHora: {
             gte: today,
-            lte: endOfDay,
+          },
+          status: {
+            not: "CANCELADO",
           },
         },
       }),
@@ -126,6 +123,7 @@ export class DashboardTodayController {
         include: {
           patient: {
             select: {
+              id: true,
               nome: true,
             },
           },
@@ -138,12 +136,14 @@ export class DashboardTodayController {
         },
       }),
 
-      // Próximos atendimentos de hoje
+      // Próximos atendimentos futuros não cancelados
       prisma.appointment.findMany({
         where: {
           dataHora: {
             gte: today,
-            lte: endOfDay,
+          },
+          status: {
+            not: "CANCELADO",
           },
         },
         orderBy: {
