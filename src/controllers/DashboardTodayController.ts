@@ -11,6 +11,10 @@ export class DashboardTodayController {
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
+    // Cria o início do dia de amanhã para separar os "próximos" de "hoje"
+    const startOfTomorrow = new Date(startOfDay);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
     const [
       pacientesAtivos,
       profissionaisAtivos,
@@ -37,7 +41,7 @@ export class DashboardTodayController {
         where: { ativo: true },
       }),
 
-      // Atendimentos do dia de hoje
+      // Atendimentos do dia de hoje (00:00 até 23:59)
       prisma.appointment.count({
         where: {
           dataHora: {
@@ -47,13 +51,13 @@ export class DashboardTodayController {
         },
       }),
 
-      // 1. CORREÇÃO: Contagem de próximos atendimentos (A partir do início de HOJE e com status AGENDADO)
+      // Próximos atendimentos (A partir de amanhã em diante com status AGENDADO)
       prisma.appointment.count({
         where: {
           dataHora: {
-            gte: startOfDay, // Considera desde o início do dia de hoje para frente
+            gte: startOfTomorrow,
           },
-          status: "AGENDADO", // Altere se no seu Enum for 'AGENDADO' ou 'PENDENTE'
+          status: "AGENDADO",
         },
       }),
 
@@ -114,16 +118,16 @@ export class DashboardTodayController {
         },
       }),
 
-      // 2. CORREÇÃO: Lista de próximos atendimentos detalhados
+      // Lista de próximos atendimentos detalhados (A partir de amanhã)
       prisma.appointment.findMany({
         where: {
           dataHora: {
-            gte: startOfDay, // Traz agendamentos de hoje para o futuro
+            gte: startOfTomorrow,
           },
           status: "AGENDADO",
         },
         orderBy: {
-          dataHora: "asc", // Traz os mais próximos primeiro
+          dataHora: "asc",
         },
         take: 5,
         include: {
