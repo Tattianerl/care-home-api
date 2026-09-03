@@ -206,11 +206,14 @@ authRoutes.post(
   roleMiddleware(UserRole.ADMIN),
   registerController.handle,
 );
+
 authRoutes.patch(
   "/users/admin-reset-password",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN),
   resetPasswordByAdminController.handle,
 );
+
 authRoutes.get(
   "/users",
   authMiddleware,
@@ -278,7 +281,12 @@ authRoutes.patch(
  *       401:
  *         description: Não autenticado
  */
-authRoutes.post("/patients", authMiddleware, createPatientController.handle);
+authRoutes.post(
+  "/patients",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
+  createPatientController.handle
+);
 
 /**
  * @swagger
@@ -310,10 +318,10 @@ authRoutes.post("/patients", authMiddleware, createPatientController.handle);
  *       201:
  *         description: Evolução criada com sucesso
  */
-authRoutes.post(
-  "/evolutions",
+
+authRoutes.post("/evolutions",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA), 
   createEvolutionController.handle
 );
 
@@ -435,7 +443,13 @@ authRoutes.get(
  *       404:
  *         description: Paciente não encontrado
  */
-authRoutes.put("/patients/:id", authMiddleware, updatePatientController.handle);
+
+
+authRoutes.put("/patients/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
+  updatePatientController.handle
+);
 
 /**
  * @swagger
@@ -486,10 +500,22 @@ authRoutes.delete(
  *       200:
  *         description: Evolução atualizada
  */
+
 authRoutes.put(
   "/evolutions/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
+  roleMiddleware(
+    UserRole.ADMIN, 
+    UserRole.COORDENADOR, 
+    UserRole.MEDICO, 
+    UserRole.ENFERMEIRO, 
+    UserRole.ASSISTENTE_SOCIAL, 
+    UserRole.PSICOLOGO, 
+    UserRole.NUTRICIONISTA, 
+    UserRole.FISIOTERAPEUTA, 
+    UserRole.TERAPEUTA_OCUPACIONAL, 
+    UserRole.FONOAUDIOLOGO
+  ), 
   updateEvolutionController.handle,
 );
 
@@ -535,16 +561,17 @@ authRoutes.get(
 authRoutes.get(
   "/reports/evolutions",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
   exportEvolutionController.handle,
 );
 
 authRoutes.get(
   "/reports/medications",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN,UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
   exportMedicationController.handle,
 );
+
 authRoutes.get(
   "/reports/medications/pdf",
   authMiddleware,
@@ -552,10 +579,9 @@ authRoutes.get(
   exportMedicationsPdfController.handle,
 );
 
-authRoutes.get(
-  "/reports/vital-signs",
+authRoutes.get("/reports/vital-signs",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
   exportVitalSignsController.handle,
 );
 authRoutes.get(
@@ -667,9 +693,11 @@ authRoutes.post(
  *       201:
  *         description: Documento enviado
  */
+
 authRoutes.post(
   "/patients/:id/documents",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL),
   upload.single("file"),
   uploadPatientDocumentController.handle,
 );
@@ -693,9 +721,12 @@ authRoutes.post(
  *       200:
  *         description: Lista de documentos
  */
+
+
 authRoutes.get(
   "/patients/:id/documents",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO),
   listPatientDocumentsController.handle,
 );
 
@@ -827,12 +858,6 @@ authRoutes.get(
   getMedicationController.handle,
 );
 
-authRoutes.put(
-  "/medications/:id",
-  authMiddleware,
-  updateMedicationController.handle,
-);
-
 /**
  * @swagger
  * /auth/patients/{id}/report:
@@ -895,7 +920,7 @@ authRoutes.get(
 authRoutes.post(
   "/appointments",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
   createAppointmentController.handle
 );
 
@@ -956,6 +981,7 @@ authRoutes.get(
 authRoutes.patch(
   "/appointments/:id/status",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
   updateAppointmentStatusController.handle,
 );
 
@@ -982,11 +1008,14 @@ authRoutes.get(
   authMiddleware,
   listAppointmentsController.handle,
 );
+
 authRoutes.put(
   "/appointments/:id",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
   updateAppointmentController.handle,
 );
+
 /**
  * @swagger
  * /auth/nutritional-assessments:
@@ -1076,7 +1105,8 @@ authRoutes.get("/me", authMiddleware, getProfileController.handle);
  *       200:
  *         description: Lista de logs
  */
-authRoutes.get("/audit-logs", authMiddleware, listAuditLogsController.handle);
+authRoutes.get("/audit-logs", authMiddleware,
+roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),listAuditLogsController.handle);
 
 /**
  * @swagger
@@ -1313,7 +1343,7 @@ authRoutes.get(
 authRoutes.delete(
   "/documents/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
   deletePatientDocumentController.handle,
 );
 
@@ -1334,7 +1364,7 @@ authRoutes.get(
 authRoutes.get(
   "/export/audit-logs",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
   exportAuditLogsController.handle,
 );
 authRoutes.get(
