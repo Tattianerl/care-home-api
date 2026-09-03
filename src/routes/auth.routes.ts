@@ -697,7 +697,7 @@ authRoutes.post(
 authRoutes.post(
   "/patients/:id/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
   upload.single("file"),
   uploadPatientDocumentController.handle,
 );
@@ -726,7 +726,7 @@ authRoutes.post(
 authRoutes.get(
   "/patients/:id/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.RECEPCAO),
   listPatientDocumentsController.handle,
 );
 
