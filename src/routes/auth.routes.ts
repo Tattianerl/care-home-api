@@ -313,7 +313,8 @@ authRoutes.post("/patients", authMiddleware, createPatientController.handle);
 authRoutes.post(
   "/evolutions",
   authMiddleware,
-  createEvolutionController.handle,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
+  createEvolutionController.handle
 );
 
 /**
@@ -488,6 +489,7 @@ authRoutes.delete(
 authRoutes.put(
   "/evolutions/:id",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
   updateEvolutionController.handle,
 );
 
@@ -719,12 +721,14 @@ authRoutes.get(
 authRoutes.post(
   "/patients/:id/vital-signs",
   authMiddleware,
-  createVitalSignController.handle,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
+  createVitalSignController.handle
 );
 
 authRoutes.put(
   "/vital-signs/:id",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM), 
   updateVitalSignController.handle,
 );
 
@@ -781,7 +785,15 @@ authRoutes.get(
 authRoutes.post(
   "/patients/:id/medications",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
   createPatientMedicationController.handle,
+);
+
+authRoutes.put(
+  "/medications/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  updateMedicationController.handle,
 );
 
 /**
@@ -883,7 +895,8 @@ authRoutes.get(
 authRoutes.post(
   "/appointments",
   authMiddleware,
-  createAppointmentController.handle,
+  roleMiddleware(UserRole.ADMIN, UserRole.RECEPCAO),
+  createAppointmentController.handle
 );
 
 /**
@@ -990,9 +1003,9 @@ authRoutes.put(
 authRoutes.post(
   "/nutritional-assessments",
   authMiddleware,
-  createNutritionalAssessmentController.handle,
+  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA, UserRole.MEDICO), 
+  createNutritionalAssessmentController.handle
 );
-
 /**
  * @swagger
  * /auth/patients/{id}/nutritional-assessments:
@@ -1333,12 +1346,14 @@ authRoutes.get(
 authRoutes.put(
   "/nutritional-assessments/:id",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA, UserRole.MEDICO),
   new UpdateNutritionalAssessmentController().handle,
 );
 
 authRoutes.delete(
   "/nutritional-assessments/:id",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA),
   new DeleteNutritionalAssessmentController().handle,
 );
 
