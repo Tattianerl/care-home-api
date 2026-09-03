@@ -1350,14 +1350,14 @@ authRoutes.delete(
 authRoutes.get(
   "/reports/evolutions/pdf",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
   exportEvolutionsPdfController.handle,
 );
 
 authRoutes.get(
   "/reports/vitals/pdf",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
   exportVitalSignsPdfController.handle,
 );
 
