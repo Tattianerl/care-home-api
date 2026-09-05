@@ -114,27 +114,22 @@ const uploadPatientDocumentController = new UploadPatientDocumentController();
 
 const listPatientDocumentsController = new ListPatientDocumentsController();
 
-const createPatientMedicationController =
-  new CreatePatientMedicationController();
+const createPatientMedicationController = new CreatePatientMedicationController();
 const listPatientMedicationsController = new ListPatientMedicationsController();
 const generatePatientReportController = new GeneratePatientReportController();
 
 const createAppointmentController = new CreateAppointmentController();
 const listAppointmentsController = new ListAppointmentsController();
-const listPatientAppointmentsController =
-  new ListPatientAppointmentsController();
-const updateAppointmentStatusController =
-  new UpdateAppointmentStatusController();
+const listPatientAppointmentsController = new ListPatientAppointmentsController();
+const updateAppointmentStatusController = new UpdateAppointmentStatusController();
 const listTodayAppointmentsController = new ListTodayAppointmentsController();
 const getAppointmentController = new GetAppointmentController();
 const getMedicationController = new GetMedicationController();
 const updateMedicationController = new UpdateMedicationController();
 const updateAppointmentController = new UpdateAppointmentController();
 
-const createNutritionalAssessmentController =
-  new CreateNutritionalAssessmentController();
-const listPatientNutritionalAssessmentsController =
-  new ListPatientNutritionalAssessmentsController();
+const createNutritionalAssessmentController = new CreateNutritionalAssessmentController();
+const listPatientNutritionalAssessmentsController = new ListPatientNutritionalAssessmentsController();
 const uploadSignatureController = new UploadSignatureController();
 const getProfileController = new GetProfileController();
 const listAuditLogsController = new ListAuditLogsController();
@@ -150,8 +145,7 @@ const upcomingAppointmentsController = new UpcomingAppointmentsController();
 const dashboardTodayController = new DashboardTodayController();
 
 const listAllDocumentsController = new ListAllDocumentsController();
-const downloadPatientDocumentController =
-  new DownloadPatientDocumentController();
+const downloadPatientDocumentController = new DownloadPatientDocumentController();
 const deletePatientDocumentController = new DeletePatientDocumentController();
 
 const exportPatientsController = new ExportPatientsController();
@@ -176,1220 +170,465 @@ const exportMedicationsPdfController = new ExportMedicationsPdfController();
 const exportDocumentsPdfController = new ExportDocumentsPdfController();
 
 const exportAuditPdfController = new ExportAuditPdfController();
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Login do usuário
- *     tags:
- *       - Auth
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *               senha:
- *                 type: string
- *     responses:
- *       200:
- *         description: Login realizado com sucesso
- */
+
+/** ==========================================
+ *  ROTAS DE AUTENTICAÇÃO E GESTÃO DE USUÁRIOS
+ *  (Acesso exclusivo ADMIN para gestão)
+ *  ========================================== */
+
 authRoutes.post("/login", loginController.handle);
 
-authRoutes.post(
-  "/register",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  registerController.handle,
-);
+authRoutes.post("/register", authMiddleware, roleMiddleware(UserRole.ADMIN), registerController.handle);
 
-authRoutes.patch(
-  "/users/admin-reset-password",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  resetPasswordByAdminController.handle,
-);
+authRoutes.patch("/users/admin-reset-password", authMiddleware, roleMiddleware(UserRole.ADMIN), resetPasswordByAdminController.handle);
 
-authRoutes.get(
-  "/users",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  listUsersController.handle,
-);
-authRoutes.put(
-  "/users/update-password",
-  authMiddleware,
-  updatePasswordController.handle,
-);
-authRoutes.patch(
-  "/users/:id/toggle-status",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  toggleUserStatusController.handle,
-);
+authRoutes.get("/users", authMiddleware, roleMiddleware(UserRole.ADMIN), listUsersController.handle);
 
-/**
- * @swagger
- * /auth/patients:
- *   post:
- *     summary: Cadastrar paciente
- *     tags:
- *       - Patients
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - nome
- *               - dataNascimento
- *               - responsavel
- *               - telefone
- *             properties:
- *               nome:
- *                 type: string
- *                 example: Maria da Silva
- *               dataNascimento:
- *                 type: string
- *                 example: 1945-05-09
- *               responsavel:
- *                 type: string
- *                 example: João Silva
- *               telefone:
- *                 type: string
- *                 example: 21999999999
- *               historicoMedico:
- *                 type: string
- *               medicamentos:
- *                 type: string
- *               alergias:
- *                 type: string
- *               diagnosticos:
- *                 type: string
- *               observacoes:
- *                 type: string
- *     responses:
- *       201:
- *         description: Paciente cadastrado com sucesso
- *       401:
- *         description: Não autenticado
- */
-authRoutes.post(
-  "/patients",
+authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
+
+authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware(UserRole.ADMIN), toggleUserStatusController.handle);
+
+
+/** ==========================================
+ *  ROTAS DE PACIENTES
+ *  ========================================== */
+
+authRoutes.post("/patients",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
   createPatientController.handle
 );
 
-/**
- * @swagger
- * /auth/evolutions:
- *   post:
- *     summary: Registrar evolução de paciente
- *     tags:
- *       - Evolutions
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - descricao
- *               - patientId
- *             properties:
- *               descricao:
- *                 type: string
- *                 example: Paciente apresentou melhora clínica.
- *               patientId:
- *                 type: string
- *               assinatura:
- *                 type: string
- *     responses:
- *       201:
- *         description: Evolução criada com sucesso
- */
-
-authRoutes.post("/evolutions",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA), 
-  createEvolutionController.handle
+authRoutes.get("/patients", 
+  authMiddleware, 
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO), 
+  listPatientsController.handle
 );
 
-/**
- * @swagger
- * /auth/patients:
- *   get:
- *     summary: Listar pacientes
- *     tags:
- *       - Patients
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *       - in: query
- *         name: search
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Lista de pacientes
- */
-authRoutes.get("/patients", authMiddleware, listPatientsController.handle);
-
-/**
- * @swagger
- * /auth/patients/{id}:
- *   get:
- *     summary: Buscar paciente por ID
- *     tags:
- *       - Patients
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Dados do paciente
- *       404:
- *         description: Paciente não encontrado
- */
-authRoutes.get("/patients/:id", authMiddleware, getPatientController.handle);
-
-/**
- * @swagger
- * /auth/evolutions:
- *   get:
- *     summary: Listar todas as evoluções
- *     tags:
- *       - Evolutions
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de evoluções
- */
-authRoutes.get("/evolutions", authMiddleware, listEvolutionsController.handle);
-
-/**
- * @swagger
- * /auth/patients/{id}/evolutions:
- *   get:
- *     summary: Listar evoluções de um paciente
- *     tags:
- *       - Evolutions
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Evoluções do paciente
- */
-authRoutes.get(
-  "/patients/:id/evolutions",
-  authMiddleware,
-  listPatientEvolutionsController.handle,
+authRoutes.get("/patients/:id", 
+  authMiddleware, 
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO), 
+  getPatientController.handle
 );
-
-/**
- * @swagger
- * /auth/patients/{id}:
- *   put:
- *     summary: Atualizar paciente
- *     tags:
- *       - Patients
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: Paciente atualizado
- *       404:
- *         description: Paciente não encontrado
- */
-
 
 authRoutes.put("/patients/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.RECEPCAO),
   updatePatientController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}:
- *   delete:
- *     summary: Desativar paciente
- *     tags:
- *       - Patients
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Paciente desativado
- *       404:
- *         description: Paciente não encontrado
- *       403:
- *         description: Apenas administradores
- */
-authRoutes.delete(
-  "/patients/:id",
+authRoutes.delete("/patients/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  deletePatientController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  deletePatientController.handle
 );
 
-/**
- * @swagger
- * /auth/evolutions/{id}:
- *   put:
- *     summary: Atualizar evolução
- *     tags:
- *       - Evolutions
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Evolução atualizada
- */
 
-authRoutes.put(
-  "/evolutions/:id",
+/** ==========================================
+ *  ROTAS DE EVOLUÇÕES CLÍNICAS
+ *  ========================================== */
+
+authRoutes.post("/evolutions",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN, 
-    UserRole.COORDENADOR, 
-    UserRole.MEDICO, 
-    UserRole.ENFERMEIRO, 
-    UserRole.ASSISTENTE_SOCIAL, 
-    UserRole.PSICOLOGO, 
-    UserRole.NUTRICIONISTA, 
-    UserRole.FISIOTERAPEUTA, 
-    UserRole.TERAPEUTA_OCUPACIONAL, 
-    UserRole.FONOAUDIOLOGO
-  ), 
-  updateEvolutionController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA, UserRole.FISIOTERAPEUTA, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO), 
+  createEvolutionController.handle
 );
 
-/**
- * @swagger
- * /auth/evolutions/{id}:
- *   delete:
- *     summary: Excluir evolução
- *     tags:
- *       - Evolutions
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Evolução removida
- *       403:
- *         description: Apenas administradores
- */
-authRoutes.delete(
-  "/evolutions/:id",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  deleteEvolutionController.handle,
+authRoutes.get("/evolutions", 
+  authMiddleware, 
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO), 
+  listEvolutionsController.handle
 );
 
-authRoutes.get(
-  "/reports/patients",
+authRoutes.get("/patients/:id/evolutions",
   authMiddleware,
-  exportPatientsController.handle,
-);
-authRoutes.get(
-  "/reports/patients/pdf",
-  authMiddleware,
-  exportPatientsPdfController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO),
+  listPatientEvolutionsController.handle
 );
 
-authRoutes.get(
-  "/reports/evolutions",
+authRoutes.put("/evolutions/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
-  exportEvolutionController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA, UserRole.FISIOTERAPEUTA, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO), 
+  updateEvolutionController.handle
 );
 
-authRoutes.get(
-  "/reports/medications",
+authRoutes.delete("/evolutions/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN,UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
-  exportMedicationController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  deleteEvolutionController.handle
 );
 
-authRoutes.get(
-  "/reports/medications/pdf",
+
+/** ==========================================
+ *  ROTAS DE RELATÓRIOS E AUDITORIA
+ *  ========================================== */
+
+authRoutes.get("/reports/patients",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  exportMedicationsPdfController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  exportPatientsController.handle
+);
+
+authRoutes.get("/reports/patients/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportPatientsPdfController.handle
+);
+
+authRoutes.get("/reports/evolutions",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  exportEvolutionController.handle
+);
+
+authRoutes.get("/reports/evolutions/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportEvolutionsPdfController.handle
+);
+
+authRoutes.get("/reports/medications",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  exportMedicationController.handle
+);
+
+authRoutes.get("/reports/medications/pdf",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportMedicationsPdfController.handle
 );
 
 authRoutes.get("/reports/vital-signs",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
-  exportVitalSignsController.handle,
-);
-authRoutes.get(
-  "/vital-signs",
-  authMiddleware,
-  listAllVitalSignsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
+  exportVitalSignsController.handle
 );
 
-authRoutes.get(
-  "/reports/documents",
+authRoutes.get("/reports/vitals/pdf",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  exportDocumentsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportVitalSignsPdfController.handle
 );
 
-authRoutes.get(
-  "/reports/audit",
+authRoutes.get("/reports/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  exportAuditLogsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportDocumentsController.handle
 );
 
-authRoutes.get(
-  "/reports/audit/pdf",
+authRoutes.get("/reports/documents/pdf",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  exportAuditPdfController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportDocumentsPdfController.handle
 );
 
-authRoutes.get(
-  "/reports/documents/pdf",
+authRoutes.get("/reports/audit",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN),
-  exportDocumentsPdfController.handle,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportAuditLogsController.handle
 );
-/**
- * @swagger
- * /auth/dashboard:
- *   get:
- *     summary: Dashboard principal
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Resumo geral do sistema
- */
-authRoutes.get("/dashboard", authMiddleware, dashboardController.handle);
 
-/**
- * @swagger
- * /auth/upload:
- *   post:
- *     summary: Upload de arquivo
- *     tags:
- *       - Upload
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Upload realizado
- */
-authRoutes.post(
-  "/upload",
+authRoutes.get("/reports/audit/pdf",
   authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportAuditPdfController.handle
+);
+
+authRoutes.get("/export/audit-logs",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  exportAuditLogsController.handle
+);
+
+authRoutes.get("/audit-logs", 
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  listAuditLogsController.handle
+);
+
+
+/** ==========================================
+ *  ROTAS DE DASHBOARD E ESTATÍSTICAS
+ *  ========================================== */
+
+authRoutes.get("/dashboard", 
+  authMiddleware, 
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO), 
+  dashboardController.handle
+);
+
+authRoutes.get("/dashboard/patients-by-month",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  patientsByMonthController.handle
+);
+
+authRoutes.get("/dashboard/evolutions-by-month",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  evolutionsByMonthController.handle
+);
+
+authRoutes.get("/dashboard/appointments-by-month",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  appointmentsByMonthController.handle
+);
+
+authRoutes.get("/dashboard/documents-by-month",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  documentsByMonthController.handle
+);
+
+authRoutes.get("/dashboard/today",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  dashboardTodayController.handle
+);
+
+authRoutes.get("/dashboard/audit-summary",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  auditSummaryController.handle
+);
+
+authRoutes.get("/dashboard/top-users",
+  authMiddleware,
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  topUsersController.handle
+);
+
+
+/** ==========================================
+ *  ROTAS DE DOCUMENTOS E UPLOADS
+ *  ========================================== */
+
+authRoutes.post("/upload",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.FISIOTERAPEUTA, UserRole.MEDICO, UserRole.NUTRICIONISTA, UserRole.TECNICO_ENFERMAGEM, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.RECEPCAO),
   upload.single("file"),
-  uploadController.handle,
+  uploadController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/documents:
- *   post:
- *     summary: Enviar documento para paciente
- *     tags:
- *       - Documents
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               nome:
- *                 type: string
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       201:
- *         description: Documento enviado
- */
-
-authRoutes.post(
-  "/patients/:id/documents",
+authRoutes.post("/patients/:id/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.RECEPCAO),
   upload.single("file"),
-  uploadPatientDocumentController.handle,
+  uploadPatientDocumentController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/documents:
- *   get:
- *     summary: Listar documentos do paciente
- *     tags:
- *       - Documents
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Lista de documentos
- */
-
-
-authRoutes.get(
-  "/patients/:id/documents",
+authRoutes.get("/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ENFERMEIRO, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.RECEPCAO),
-  listPatientDocumentsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.MEDICO, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.TECNICO_ENFERMAGEM, UserRole.RECEPCAO),
+  listAllDocumentsController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/vital-signs:
- *   post:
- *     summary: Registrar sinais vitais
- *     tags:
- *       - Vital Signs
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       201:
- *         description: Sinais vitais registrados
- */
-authRoutes.post(
-  "/patients/:id/vital-signs",
+authRoutes.get("/patients/:id/documents",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.MEDICO, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.TECNICO_ENFERMAGEM, UserRole.RECEPCAO),
+  listPatientDocumentsController.handle
+);
+
+authRoutes.get("/documents/:id/download",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.MEDICO, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.TECNICO_ENFERMAGEM, UserRole.RECEPCAO),
+  downloadPatientDocumentController.handle
+);
+
+authRoutes.delete("/documents/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  deletePatientDocumentController.handle
+);
+
+
+/** ==========================================
+ *  ROTAS DE SINAIS VITAIS
+ *  ========================================== */
+
+authRoutes.post("/patients/:id/vital-signs",
+  authMiddleware,
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
   createVitalSignController.handle
 );
 
-authRoutes.put(
-  "/vital-signs/:id",
+authRoutes.put("/vital-signs/:id",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM), 
-  updateVitalSignController.handle,
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM), 
+  updateVitalSignController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/vital-signs:
- *   get:
- *     summary: Listar sinais vitais
- *     tags:
- *       - Vital Signs
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Histórico de sinais vitais
- */
-authRoutes.get(
-  "/patients/:id/vital-signs",
+authRoutes.get("/vital-signs",
   authMiddleware,
-  listPatientVitalSignsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listAllVitalSignsController.handle
 );
 
-authRoutes.get(
-  "/patients/:id/vital-signs/latest",
+authRoutes.get("/patients/:id/vital-signs",
   authMiddleware,
-  getLatestVitalSignController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listPatientVitalSignsController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/medications:
- *   post:
- *     summary: Registrar medicação
- *     tags:
- *       - Medications
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       201:
- *         description: Medicação registrada
- */
-authRoutes.post(
-  "/patients/:id/medications",
+authRoutes.get("/patients/:id/vital-signs/latest",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO), 
-  createPatientMedicationController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  getLatestVitalSignController.handle
 );
 
-authRoutes.put(
-  "/medications/:id",
+
+/** ==========================================
+ *  ROTAS DE MEDICAÇÕES
+ *  ========================================== */
+
+authRoutes.post("/patients/:id/medications",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.MEDICO, UserRole.ENFERMEIRO),
-  updateMedicationController.handle,
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO), 
+  createPatientMedicationController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/medications:
- *   get:
- *     summary: Listar medicações do paciente
- *     tags:
- *       - Medications
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Histórico de medicações
- */
-authRoutes.get(
-  "/patients/:id/medications",
+authRoutes.put("/medications/:id",
   authMiddleware,
-  listPatientMedicationsController.handle,
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO),
+  updateMedicationController.handle
 );
 
-authRoutes.get(
-  "/medications/:id",
+authRoutes.get("/patients/:id/medications",
   authMiddleware,
-  getMedicationController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listPatientMedicationsController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/report:
- *   get:
- *     summary: Gerar relatório PDF do paciente
- *     tags:
- *       - Reports
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: PDF gerado
- */
-authRoutes.get(
-  "/patients/:id/report",
+authRoutes.get("/medications/:id",
   authMiddleware,
-  generatePatientReportController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  getMedicationController.handle
 );
 
-/**
- * @swagger
- * /auth/appointments:
- *   post:
- *     summary: Criar agendamento
- *     tags:
- *       - Appointments
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - titulo
- *               - dataHora
- *               - patientId
- *             properties:
- *               titulo:
- *                 type: string
- *                 example: Consulta geriátrica
- *               dataHora:
- *                 type: string
- *                 format: date-time
- *               observacoes:
- *                 type: string
- *               patientId:
- *                 type: string
- *     responses:
- *       201:
- *         description: Agendamento criado com sucesso
- */
-authRoutes.post(
-  "/appointments",
+
+/** ==========================================
+ *  ROTAS DE TIMELINE E RELATÓRIO PDF DO PACIENTE
+ *  ========================================== */
+
+authRoutes.get("/patients/:id/timeline",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  patientTimelineController.handle
+);
+
+authRoutes.get("/patients/:id/report",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  generatePatientReportController.handle
+);
+
+
+/** ==========================================
+ *  ROTAS DE AGENDAMENTOS
+ *  ========================================== */
+
+authRoutes.post("/appointments",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
   createAppointmentController.handle
 );
 
-/**
- * @swagger
- * /auth/patients/{id}/appointments:
- *   get:
- *     summary: Listar agendamentos do paciente
- *     tags:
- *       - Appointments
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Lista de agendamentos
- */
-authRoutes.get(
-  "/patients/:id/appointments",
+authRoutes.put("/appointments/:id",
   authMiddleware,
-  listPatientAppointmentsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
+  updateAppointmentController.handle
 );
 
-/**
- * @swagger
- * /auth/appointments/{id}/status:
- *   patch:
- *     summary: Atualizar status do agendamento
- *     tags:
- *       - Appointments
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               status:
- *                 type: string
- *                 example: concluido
- *     responses:
- *       200:
- *         description: Status atualizado
- */
-authRoutes.patch(
-  "/appointments/:id/status",
+authRoutes.patch("/appointments/:id/status",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
-  updateAppointmentStatusController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
+  updateAppointmentStatusController.handle
 );
 
-/**
- * @swagger
- * /auth/appointments/today:
- *   get:
- *     summary: Listar agendamentos do dia
- *     tags:
- *       - Appointments
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Agendamentos de hoje
- */
-authRoutes.get(
-  "/appointments/today",
+authRoutes.get("/appointments",
   authMiddleware,
-  listTodayAppointmentsController.handle,
-);
-authRoutes.get(
-  "/appointments",
-  authMiddleware,
-  listAppointmentsController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listAppointmentsController.handle
 );
 
-authRoutes.put(
-  "/appointments/:id",
+authRoutes.get("/patients/:id/appointments",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.RECEPCAO),
-  updateAppointmentController.handle,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listPatientAppointmentsController.handle
 );
 
-/**
- * @swagger
- * /auth/nutritional-assessments:
- *   post:
- *     summary: Registrar avaliação nutricional
- *     tags:
- *       - Nutritional Assessment"
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       201:
- *         description: Avaliação registrada
- */
-authRoutes.post(
-  "/nutritional-assessments",
+authRoutes.get("/appointments/upcoming",
   authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA, UserRole.MEDICO), 
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  upcomingAppointmentsController.handle
+);
+
+authRoutes.get("/appointments/today",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listTodayAppointmentsController.handle
+);
+
+authRoutes.get("/appointments/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  getAppointmentController.handle
+);
+
+
+/** ==========================================
+ *  ROTAS DE AVALIAÇÕES NUTRICIONAIS
+ *  ========================================== */
+
+authRoutes.post("/nutritional-assessments",
+  authMiddleware,
+  roleMiddleware(UserRole.NUTRICIONISTA, UserRole.MEDICO), 
   createNutritionalAssessmentController.handle
 );
-/**
- * @swagger
- * /auth/patients/{id}/nutritional-assessments:
- *   get:
- *     summary: Listar avaliações nutricionais
- *     tags:
- *       - Nutritional Assessment
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Histórico nutricional
- */
-authRoutes.get(
-  "/patients/:id/nutritional-assessments",
+
+authRoutes.put("/nutritional-assessments/:id",
   authMiddleware,
-  listPatientNutritionalAssessmentsController.handle,
+  roleMiddleware(UserRole.NUTRICIONISTA, UserRole.MEDICO),
+  new UpdateNutritionalAssessmentController().handle
 );
 
-/**
- * @swagger
- * /auth/users/signature:
- *   post:
- *     summary: Upload de assinatura digital
- *     tags:
- *       - Users
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Assinatura enviada
- */
-authRoutes.post(
-  "/users/signature",
+authRoutes.delete("/nutritional-assessments/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.NUTRICIONISTA, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
+  new DeleteNutritionalAssessmentController().handle
+);
+
+authRoutes.get("/patients/:id/nutritional-assessments",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  listPatientNutritionalAssessmentsController.handle
+);
+
+authRoutes.get("/patients/:id/nutritional-assessments/latest",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  new GetLatestPatientNutritionalAssessmentController().handle
+);
+
+authRoutes.get("/nutritional-assessments/today",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  new GetTodayNutritionalAssessmentsController().handle
+);
+
+
+/** ==========================================
+ *  PERFIL E ASSINATURA PRÓPRIA
+ *  ========================================== */
+
+authRoutes.post("/users/signature",
   authMiddleware,
   upload.single("file"),
-  uploadSignatureController.handle,
+  uploadSignatureController.handle
 );
 
 authRoutes.get("/me", authMiddleware, getProfileController.handle);
 
-/**
- * @swagger
- * /auth/audit-logs:
- *   get:
- *     summary: Listar logs de auditoria
- *     tags:
- *       - Audit
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Lista de logs
- */
-authRoutes.get("/audit-logs", authMiddleware,
-roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),listAuditLogsController.handle);
-
-/**
- * @swagger
- * /auth/dashboard/patients-by-month:
- *   get:
- *     summary: Pacientes cadastrados por mês
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Estatísticas mensais de pacientes
- */
-authRoutes.get(
-  "/dashboard/patients-by-month",
-  authMiddleware,
-  patientsByMonthController.handle,
-);
-
-/**
- * @swagger
- * /auth/dashboard/evolutions-by-month:
- *   get:
- *     summary: Evoluções registradas por mês
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: year
- *         schema:
- *           type: integer
- *       - in: query
- *         name: month
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Estatísticas de evoluções
- */
-authRoutes.get(
-  "/dashboard/evolutions-by-month",
-  authMiddleware,
-  evolutionsByMonthController.handle,
-);
-
-/**
- * @swagger
- * /auth/dashboard/appointments-by-month:
- *   get:
- *     summary: Agendamentos por mês
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Estatísticas de agendamentos
- */
-authRoutes.get(
-  "/dashboard/appointments-by-month",
-  authMiddleware,
-  appointmentsByMonthController.handle,
-);
-
-authRoutes.get("/documents", authMiddleware, listAllDocumentsController.handle);
-
-/**
- * @swagger
- * /auth/dashboard/documents-by-month:
- *   get:
- *     summary: Documentos enviados por mês
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Estatísticas de documentos
- */
-authRoutes.get(
-  "/dashboard/documents-by-month",
-  authMiddleware,
-  documentsByMonthController.handle,
-);
-
-/**
- * @swagger
- * /auth/dashboard/audit-summary:
- *   get:
- *     summary: Resumo de auditoria
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Resumo das ações auditadas
- */
-authRoutes.get(
-  "/dashboard/audit-summary",
-  authMiddleware,
-  auditSummaryController.handle,
-);
-
-/**
- * @swagger
- * /auth/dashboard/top-users:
- *   get:
- *     summary: Usuários mais ativos
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *       - in: query
- *         name: year
- *         schema:
- *           type: integer
- *       - in: query
- *         name: month
- *         schema:
- *           type: integer
- *     responses:
- *       200:
- *         description: Ranking de usuários
- */
-authRoutes.get(
-  "/dashboard/top-users",
-  authMiddleware,
-  topUsersController.handle,
-);
-
-/**
- * @swagger
- * /auth/patients/{id}/timeline:
- *   get:
- *     summary: Timeline completa do paciente
- *     tags:
- *       - Timeline
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Histórico completo do paciente
- */
-authRoutes.get(
-  "/patients/:id/timeline",
-  authMiddleware,
-  patientTimelineController.handle,
-);
-
-/**
- * @swagger
- * /auth/appointments/upcoming:
- *   get:
- *     summary: Listar próximos agendamentos
- *     tags:
- *       - Appointments
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Próximos agendamentos
- */
-authRoutes.get(
-  "/appointments/upcoming",
-  authMiddleware,
-  upcomingAppointmentsController.handle,
-);
-
-authRoutes.get(
-  "/appointments/:id",
-  authMiddleware,
-  getAppointmentController.handle,
-);
-
-/**
- * @swagger
- * /auth/dashboard/today:
- *   get:
- *     summary: Dashboard operacional do dia
- *     tags:
- *       - Dashboard
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Indicadores do dia
- */
-authRoutes.get(
-  "/dashboard/today",
-  authMiddleware,
-  dashboardTodayController.handle,
-);
-
-/**
- * @swagger
- * /auth/documents/{id}/download:
- *   get:
- *     summary: Download de documento
- *     tags:
- *       - Documents
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Arquivo baixado
- */
-authRoutes.get(
-  "/documents/:id/download",
-  authMiddleware,
-  downloadPatientDocumentController.handle,
-);
-
-authRoutes.delete(
-  "/documents/:id",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL),
-  deletePatientDocumentController.handle,
-);
-
-authRoutes.get(
-  "/reports/evolutions/pdf",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
-  exportEvolutionsPdfController.handle,
-);
-
-authRoutes.get(
-  "/reports/vitals/pdf",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
-  exportVitalSignsPdfController.handle,
-);
-
-authRoutes.get(
-  "/export/audit-logs",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
-  exportAuditLogsController.handle,
-);
-authRoutes.get(
-  "/patients/:id/nutritional-assessments/latest",
-  authMiddleware,
-  new GetLatestPatientNutritionalAssessmentController().handle,
-);
-
-authRoutes.put(
-  "/nutritional-assessments/:id",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA, UserRole.MEDICO),
-  new UpdateNutritionalAssessmentController().handle,
-);
-
-authRoutes.delete(
-  "/nutritional-assessments/:id",
-  authMiddleware,
-  roleMiddleware(UserRole.ADMIN, UserRole.NUTRICIONISTA),
-  new DeleteNutritionalAssessmentController().handle,
-);
-
-authRoutes.get(
-  "/nutritional-assessments/today",
-  authMiddleware,
-  new GetTodayNutritionalAssessmentsController().handle,
-);
 export { authRoutes };
