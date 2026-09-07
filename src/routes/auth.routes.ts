@@ -91,33 +91,25 @@ const registerController = new RegisterController();
 const loginController = new LoginController();
 const createPatientController = new CreatePatientController();
 const createEvolutionController = new CreateEvolutionController();
-
 const listPatientsController = new ListPatientsController();
 const getPatientController = new GetPatientController();
 const updatePatientController = new UpdatePatientController();
 const deletePatientController = new DeletePatientController();
-
 const listEvolutionsController = new ListEvolutionsController();
 const listPatientEvolutionsController = new ListPatientEvolutionsController();
 const updateEvolutionController = new UpdateEvolutionController();
 const deleteEvolutionController = new DeleteEvolutionController();
-
 const exportEvolutionController = new ExportEvolutionController();
 const exportMedicationController = new ExportMedicationController();
 const exportVitalSignsController = new ExportVitalSignsController();
 const exportDocumentsController = new ExportDocumentsController();
-
 const dashboardController = new DashboardController();
-
 const uploadController = new UploadController();
 const uploadPatientDocumentController = new UploadPatientDocumentController();
-
 const listPatientDocumentsController = new ListPatientDocumentsController();
-
 const createPatientMedicationController = new CreatePatientMedicationController();
 const listPatientMedicationsController = new ListPatientMedicationsController();
 const generatePatientReportController = new GeneratePatientReportController();
-
 const createAppointmentController = new CreateAppointmentController();
 const listAppointmentsController = new ListAppointmentsController();
 const listPatientAppointmentsController = new ListPatientAppointmentsController();
@@ -127,13 +119,11 @@ const getAppointmentController = new GetAppointmentController();
 const getMedicationController = new GetMedicationController();
 const updateMedicationController = new UpdateMedicationController();
 const updateAppointmentController = new UpdateAppointmentController();
-
 const createNutritionalAssessmentController = new CreateNutritionalAssessmentController();
 const listPatientNutritionalAssessmentsController = new ListPatientNutritionalAssessmentsController();
 const uploadSignatureController = new UploadSignatureController();
 const getProfileController = new GetProfileController();
 const listAuditLogsController = new ListAuditLogsController();
-
 const patientsByMonthController = new PatientsByMonthController();
 const evolutionsByMonthController = new EvolutionsByMonthController();
 const appointmentsByMonthController = new AppointmentsByMonthController();
@@ -143,49 +133,118 @@ const topUsersController = new TopUsersController();
 const patientTimelineController = new PatientTimelineController();
 const upcomingAppointmentsController = new UpcomingAppointmentsController();
 const dashboardTodayController = new DashboardTodayController();
-
 const listAllDocumentsController = new ListAllDocumentsController();
 const downloadPatientDocumentController = new DownloadPatientDocumentController();
 const deletePatientDocumentController = new DeletePatientDocumentController();
-
 const exportPatientsController = new ExportPatientsController();
 const exportAuditLogsController = new ExportAuditLogsController();
 const resetPasswordByAdminController = new ResetPasswordByAdminController();
 const listUsersController = new ListUsersController();
 const updatePasswordController = new UpdatePasswordController();
 const toggleUserStatusController = new ToggleUserStatusController();
-
 const exportEvolutionsPdfController = new ExportEvolutionsPdfController();
 const exportVitalSignsPdfController = new ExportVitalSignsPdfController();
-
 const createVitalSignController = new CreateVitalSignController();
 const listPatientVitalSignsController = new ListPatientVitalSignsController();
 const updateVitalSignController = new UpdateVitalSignController();
-
 const listAllVitalSignsController = new ListAllVitalSignsController();
 const getLatestVitalSignController = new GetLatestVitalSignController();
 const exportPatientsPdfController = new ExportPatientsPdfController();
-
 const exportMedicationsPdfController = new ExportMedicationsPdfController();
 const exportDocumentsPdfController = new ExportDocumentsPdfController();
-
 const exportAuditPdfController = new ExportAuditPdfController();
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Auth
+ *     description: Autenticação e Gestão de Usuários
+ *   - name: Patients
+ *     description: Cadastro e Gestão de Residentes
+ *   - name: Evolutions
+ *     description: Evoluções Clínicas
+ *   - name: Reports
+ *     description: Exportação de Dados e Relatórios
+ *   - name: Dashboard
+ *     description: Métricas e Indicadores
+ *   - name: Documents
+ *     description: Upload e Gestão de Arquivos
+ *   - name: VitalSigns
+ *     description: Sinais Vitais dos Residentes
+ *   - name: Medications
+ *     description: Controle de Medicações
+ *   - name: Appointments
+ *     description: Agenda e Consultas
+ *   - name: Nutrition
+ *     description: Avaliações Nutricionais
+ */
 
 /** ==========================================
  *  ROTAS DE AUTENTICAÇÃO E GESTÃO DE USUÁRIOS
- *  (Acesso exclusivo ADMIN para gestão)
  *  ========================================== */
 
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Autentica um usuário no sistema
+ *     tags: [Auth]
+ */
 authRoutes.post("/login", loginController.handle);
 
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     summary: Registra um novo usuário (Apenas Admin)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/register", authMiddleware, roleMiddleware(UserRole.ADMIN), registerController.handle);
 
+/**
+ * @swagger
+ * /users/admin-reset-password:
+ *   patch:
+ *     summary: Redefine a senha de um usuário (Apenas Admin)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.patch("/users/admin-reset-password", authMiddleware, roleMiddleware(UserRole.ADMIN), resetPasswordByAdminController.handle);
 
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Lista todos os usuários do sistema
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.get("/users", authMiddleware, roleMiddleware(UserRole.ADMIN), listUsersController.handle);
 
+/**
+ * @swagger
+ * /users/update-password:
+ *   put:
+ *     summary: Atualiza a própria senha
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.put("/users/update-password", authMiddleware, updatePasswordController.handle);
 
+/**
+ * @swagger
+ * /users/{id}/toggle-status:
+ *   patch:
+ *     summary: Ativa/Desativa um usuário
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware(UserRole.ADMIN), toggleUserStatusController.handle);
 
 
@@ -193,6 +252,20 @@ authRoutes.patch("/users/:id/toggle-status", authMiddleware, roleMiddleware(User
  *  ROTAS DE PACIENTES
  *  ========================================== */
 
+/**
+ * @swagger
+ * /patients:
+ *   post:
+ *     summary: Cadastra um novo residente
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista todos os residentes
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/patients",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
@@ -205,6 +278,25 @@ authRoutes.get("/patients",
   listPatientsController.handle
 );
 
+/**
+ * @swagger
+ * /patients/{id}:
+ *   get:
+ *     summary: Busca dados de um residente específico
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ *   put:
+ *     summary: Atualiza dados de um residente
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ *   delete:
+ *     summary: Remove um residente
+ *     tags: [Patients]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.get("/patients/:id", 
   authMiddleware, 
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO), 
@@ -228,6 +320,20 @@ authRoutes.delete("/patients/:id",
  *  ROTAS DE EVOLUÇÕES CLÍNICAS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /evolutions:
+ *   post:
+ *     summary: Cria uma nova evolução clínica
+ *     tags: [Evolutions]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista todas as evoluções
+ *     tags: [Evolutions]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/evolutions",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA, UserRole.FISIOTERAPEUTA, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO), 
@@ -240,12 +346,35 @@ authRoutes.get("/evolutions",
   listEvolutionsController.handle
 );
 
+/**
+ * @swagger
+ * /patients/{id}/evolutions:
+ *   get:
+ *     summary: Lista as evoluções de um paciente específico
+ *     tags: [Evolutions]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.get("/patients/:id/evolutions",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO),
   listPatientEvolutionsController.handle
 );
 
+/**
+ * @swagger
+ * /evolutions/{id}:
+ *   put:
+ *     summary: Atualiza uma evolução clínica
+ *     tags: [Evolutions]
+ *     security:
+ *       - bearerAuth: []
+ *   delete:
+ *     summary: Remove uma evolução clínica
+ *     tags: [Evolutions]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.put("/evolutions/:id",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.PSICOLOGO, UserRole.NUTRICIONISTA, UserRole.FISIOTERAPEUTA, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO), 
@@ -263,6 +392,15 @@ authRoutes.delete("/evolutions/:id",
  *  ROTAS DE RELATÓRIOS E AUDITORIA
  *  ========================================== */
 
+/**
+ * @swagger
+ * /reports/patients:
+ *   get:
+ *     summary: Exporta relatório de pacientes
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.get("/reports/patients",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO),
@@ -352,6 +490,15 @@ authRoutes.get("/audit-logs",
  *  ROTAS DE DASHBOARD E ESTATÍSTICAS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /dashboard:
+ *   get:
+ *     summary: Retorna as métricas principais do painel
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.get("/dashboard", 
   authMiddleware, 
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO), 
@@ -405,6 +552,15 @@ authRoutes.get("/dashboard/top-users",
  *  ROTAS DE DOCUMENTOS E UPLOADS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /upload:
+ *   post:
+ *     summary: Faz o upload de um arquivo geral
+ *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/upload",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.FISIOTERAPEUTA, UserRole.MEDICO, UserRole.NUTRICIONISTA, UserRole.TECNICO_ENFERMAGEM, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.RECEPCAO),
@@ -412,6 +568,20 @@ authRoutes.post("/upload",
   uploadController.handle
 );
 
+/**
+ * @swagger
+ * /patients/{id}/documents:
+ *   post:
+ *     summary: Faz upload de documento para o paciente
+ *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista documentos do paciente
+ *     tags: [Documents]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/patients/:id/documents",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.ENFERMEIRO, UserRole.RECEPCAO),
@@ -448,6 +618,20 @@ authRoutes.delete("/documents/:id",
  *  ROTAS DE SINAIS VITAIS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /patients/{id}/vital-signs:
+ *   post:
+ *     summary: Registra sinais vitais do paciente
+ *     tags: [VitalSigns]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista sinais vitais do paciente
+ *     tags: [VitalSigns]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/patients/:id/vital-signs",
   authMiddleware,
   roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM),
@@ -483,6 +667,20 @@ authRoutes.get("/patients/:id/vital-signs/latest",
  *  ROTAS DE MEDICAÇÕES
  *  ========================================== */
 
+/**
+ * @swagger
+ * /patients/{id}/medications:
+ *   post:
+ *     summary: Registra medicação para o paciente
+ *     tags: [Medications]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista medicações do paciente
+ *     tags: [Medications]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/patients/:id/medications",
   authMiddleware,
   roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO), 
@@ -529,6 +727,20 @@ authRoutes.get("/patients/:id/report",
  *  ROTAS DE AGENDAMENTOS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /appointments:
+ *   post:
+ *     summary: Cria um novo agendamento
+ *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
+ *   get:
+ *     summary: Lista agendamentos
+ *     tags: [Appointments]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/appointments",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.RECEPCAO),
@@ -582,6 +794,15 @@ authRoutes.get("/appointments/:id",
  *  ROTAS DE AVALIAÇÕES NUTRICIONAIS
  *  ========================================== */
 
+/**
+ * @swagger
+ * /nutritional-assessments:
+ *   post:
+ *     summary: Registra avaliação nutricional
+ *     tags: [Nutrition]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/nutritional-assessments",
   authMiddleware,
   roleMiddleware(UserRole.NUTRICIONISTA, UserRole.MEDICO), 
@@ -623,6 +844,15 @@ authRoutes.get("/nutritional-assessments/today",
  *  PERFIL E ASSINATURA PRÓPRIA
  *  ========================================== */
 
+/**
+ * @swagger
+ * /me:
+ *   get:
+ *     summary: Retorna os dados do próprio perfil logado
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ */
 authRoutes.post("/users/signature",
   authMiddleware,
   upload.single("file"),
