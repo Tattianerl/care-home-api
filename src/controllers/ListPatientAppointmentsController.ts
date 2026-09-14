@@ -1,68 +1,63 @@
 import { Request, Response } from "express";
-import { prisma } from "../lib/prisma";
 import { AppointmentStatus } from "@prisma/client";
-
+import { prisma } from "../lib/prisma";
 
 export class ListPatientAppointmentsController {
+  async handle(request: Request, response: Response) {
+    try {
+      const patientId = String(request.params.id ?? "").trim();
+      const statusParam = request.query.status;
 
-  async handle(
-    request: Request,
-    response: Response
-  ) {
+      if (!patientId) {
+        return response.status(400).json({
+          error: "ID do paciente é obrigatório.",
+        });
+      }
 
-    const patientId = request.params.id as string;
-
-    const status =
-      request.query.status as string | undefined;
-
-
-    const patient =
-      await prisma.patient.findUnique({
+      const patient = await prisma.patient.findUnique({
         where: {
           id: patientId,
         },
+        select: {
+          id: true,
+        },
       });
 
+      if (!patient) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
 
-    if (!patient) {
-      return response.status(404).json({
-        error: "Paciente não encontrado.",
-      });
-    }
+      let status: AppointmentStatus | undefined;
 
+      if (statusParam !== undefined) {
+        const statusValue = String(statusParam).trim().toUpperCase();
 
-    const whereStatus =
-      status &&
-      Object.values(AppointmentStatus)
-        .includes(status as AppointmentStatus)
-        ? {
-            status:
-              status as AppointmentStatus,
-          }
-        : {};
+        if (!Object.values(AppointmentStatus).includes(statusValue as AppointmentStatus)) {
+          return response.status(400).json({
+            error: "Status de agendamento inválido.",
+          });
+        }
 
+        status = statusValue as AppointmentStatus;
+      }
 
-    const appointments =
-      await prisma.appointment.findMany({
-
+      const appointments = await prisma.appointment.findMany({
         where: {
-
           patientId,
-
-          ...whereStatus,
-
+          ...(status !== undefined && {
+            status,
+          }),
         },
 
-
         include: {
-
           patient: {
             select: {
               id: true,
               nome: true,
             },
           },
-
 
           user: {
             select: {
@@ -71,23 +66,23 @@ export class ListPatientAppointmentsController {
               cargo: true,
             },
           },
-
         },
-
 
         orderBy: {
-
           dataHora: "desc",
-
         },
-
       });
 
+      return response.status(200).json(appointments);
+    } catch (error) {
+      console.error(
+        "Erro ao listar agendamentos do paciente:",
+        error
+      );
 
-    return response.json(
-      appointments
-    );
-
+      return response.status(500).json({
+        error: "Erro ao listar agendamentos do paciente.",
+      });
+    }
   }
-
 }

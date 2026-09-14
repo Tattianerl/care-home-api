@@ -1,51 +1,118 @@
 import { Request, Response } from "express";
+import { compare, hash } from "bcryptjs";
+
 import { prisma } from "../lib/prisma";
-import { compare, hash } from "bcryptjs"; 
+import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class UpdatePasswordController {
   async handle(request: Request, response: Response) {
+    const userId = request.user?.id;
+
+    if (!userId) {
+      return response.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
     try {
-        if (!request.user) {
-        return response.status(401).json({ error: "Não autorizado." });
-      }
-      const userId = request.user.id; 
       const { senhaAntiga, novaSenha } = request.body;
 
-      if (!senhaAntiga || !novaSenha) {
-        return response.status(400).json({ error: "Campos obrigatórios ausentes." });
+      if (
+        typeof senhaAntiga !== "string" ||
+        !senhaAntiga
+      ) {
+        return response.status(400).json({
+          error: "A senha atual é obrigatória.",
+        });
       }
 
-      if (novaSenha.length < 6) {
-        return response.status(400).json({ error: "A nova senha deve ter pelo menos 6 caracteres." });
+      if (
+        typeof novaSenha !== "string" ||
+        !novaSenha
+      ) {
+        return response.status(400).json({
+          error: "A nova senha é obrigatória.",
+        });
       }
 
-      // 1. Busca o usuário no banco para pegar a senha criptografada atual
+      if (novaSenha.length < 8) {
+        return response.status(400).json({
+          error: "A nova senha deve ter pelo menos 8 caracteres.",
+        });
+      }
+
       const user = await prisma.user.findUnique({
-        where: { id: userId },
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          senha: true,
+        },
       });
 
       if (!user) {
-        return response.status(404).json({ error: "Usuário não encontrado." });
+        return response.status(404).json({
+          error: "Usuário não encontrado.",
+        });
       }
 
-      // 2. Verifica se a senha antiga informada está correta
-      const senhaIncorreta = await compare(senhaAntiga, user.senha);
-      if (!senhaIncorreta) {
-        return response.status(400).json({ error: "A senha antiga está incorreta." });
+      const senhaAtualValida = await compare(
+        senhaAntiga,
+        user.senha
+      );
+
+      if (!senhaAtualValida) {
+        return response.status(400).json({
+          error: "A senha atual está incorreta.",
+        });
       }
 
-      // 3. Criptografa a nova senha e atualiza no banco
-      const novaSenhaCriptografada = await hash(novaSenha, 8);
+      const mesmaSenha = await compare(
+        novaSenha,
+        user.senha
+      );
+
+      if (mesmaSenha) {
+        return response.status(400).json({
+          error: "A nova senha deve ser diferente da senha atual.",
+        });
+      }
+
+      const novaSenhaCriptografada = await hash(
+        novaSenha,
+        10
+      );
 
       await prisma.user.update({
-        where: { id: userId },
-        data: { senha: novaSenhaCriptografada },
+        where: {
+          id: userId,
+        },
+        data: {
+          senha: novaSenhaCriptografada,
+        },
       });
 
-      return response.status(200).json({ message: "Senha atualizada com sucesso!" });
+      await createAuditLog({
+        userId,
+        acao: AuditActions.UPDATE,
+        entidade: "USER",
+        entidadeId: userId,
+        descricao: `Senha do usuário "${user.nome}" foi alterada pelo próprio usuário.`,
+      });
+
+      return response.status(200).json({
+        message: "Senha atualizada com sucesso.",
+      });
     } catch (error) {
       console.error("Erro ao atualizar senha:", error);
-      return response.status(500).json({ error: "Erro interno ao atualizar senha." });
+
+      return response.status(500).json({
+        error: "Erro interno ao atualizar senha.",
+      });
     }
   }
 }

@@ -1,79 +1,163 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class CreateNutritionalAssessmentController {
   async handle(request: Request, response: Response) {
+    const userId = request.user?.id;
+
+    if (!userId) {
+      return response.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
     try {
-      const { peso, altura, observacoes, patientId } = request.body;
-      const userId = request.user?.id;
+      const {
+        peso,
+        altura,
+        observacoes,
+        patientId,
+      } = request.body;
 
-      if (!userId) {
-        return response.status(401).json({
-          error: "Usuário não autenticado",
-        });
-      }
-
-      // Validação de campos obrigatórios
-      if (!patientId || peso === undefined || altura === undefined) {
+      if (
+        typeof patientId !== "string" ||
+        !patientId.trim()
+      ) {
         return response.status(400).json({
-          error: "PatientId, peso e altura são obrigatórios.",
+          error: "ID do paciente é obrigatório.",
         });
       }
 
-      // Converte para Number garantindo tipos válidos
+      if (peso === undefined || altura === undefined) {
+        return response.status(400).json({
+          error: "Peso e altura são obrigatórios.",
+        });
+      }
+
       const numPeso = Number(peso);
-      let numAltura = Number(altura);
+      const numAltura = Number(altura);
 
-      if (isNaN(numPeso) || isNaN(numAltura) || numPeso <= 0 || numAltura <= 0) {
+      if (
+        !Number.isFinite(numPeso) ||
+        !Number.isFinite(numAltura)
+      ) {
         return response.status(400).json({
-          error: "Peso e altura devem ser valores numéricos maiores que zero.",
+          error: "Peso e altura devem ser valores numéricos.",
         });
       }
 
-      // Correção automática: Se a altura for enviada em cm (ex: 170 ao invés de 1.70)
-      if (numAltura > 3) {
-        numAltura = numAltura / 100;
+      // O sistema utiliza altura em metros.
+      if (numPeso <= 0 || numPeso > 500) {
+        return response.status(400).json({
+          error: "Peso inválido.",
+        });
       }
 
-      // Verificação de existência do paciente
-      const patientExists = await prisma.patient.findUnique({
-        where: { id: patientId },
+      if (numAltura <= 0 || numAltura > 2.5) {
+        return response.status(400).json({
+          error: "Altura inválida. Informe a altura em metros.",
+        });
+      }
+
+      if (
+        observacoes !== undefined &&
+        observacoes !== null &&
+        typeof observacoes !== "string"
+      ) {
+        return response.status(400).json({
+          error: "Observações inválidas.",
+        });
+      }
+
+      const patient = await prisma.patient.findUnique({
+        where: {
+          id: patientId.trim(),
+        },
+        select: {
+          id: true,
+          nome: true,
+          ativo: true,
+        },
       });
 
-      if (!patientExists) {
+      if (!patient) {
         return response.status(404).json({
-          error: "Paciente não encontrado",
+          error: "Paciente não encontrado.",
         });
       }
 
-      // Cálculo do IMC
-      const imc = Number((numPeso / (numAltura * numAltura)).toFixed(2));
+      if (!patient.ativo) {
+        return response.status(409).json({
+          error:
+            "Não é possível registrar avaliação nutricional para paciente inativo.",
+        });
+      }
 
-      // Salva no banco de dados
-      const assessment = await prisma.nutritionalAssessment.create({
-        data: {
-          peso: numPeso,
-          altura: numAltura,
-          imc,
-          observacoes: observacoes?.trim() || null,
-          patientId,
-          userId,
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
         },
-        include: {
-          user: {
-            select: {
-              nome: true,
-              cargo: true,
+        select: {
+          id: true,
+        },
+      });
+
+      if (!user) {
+        return response.status(401).json({
+          error: "Usuário autenticado não encontrado.",
+        });
+      }
+
+      const imc = Number(
+        (numPeso / (numAltura * numAltura)).toFixed(2)
+      );
+
+      const assessment =
+        await prisma.nutritionalAssessment.create({
+          data: {
+            peso: numPeso,
+            altura: numAltura,
+            imc,
+            observacoes:
+              typeof observacoes === "string" &&
+              observacoes.trim()
+                ? observacoes.trim()
+                : null,
+            patientId: patient.id,
+            userId: user.id,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+              },
             },
           },
-        },
+        });
+
+      await createAuditLog({
+        userId,
+        acao: AuditActions.CREATE,
+        entidade: "NUTRITIONAL_ASSESSMENT",
+        entidadeId: assessment.id,
+        descricao:
+          `Avaliação nutricional registrada para o paciente ` +
+          `"${patient.nome}".`,
       });
 
       return response.status(201).json(assessment);
     } catch (error) {
-      console.error("Erro ao criar avaliação nutricional:", error);
+      console.error(
+        "Erro ao criar avaliação nutricional:",
+        error
+      );
+
       return response.status(500).json({
-        error: "Erro interno do servidor ao criar avaliação nutricional",
+        error: "Erro ao criar avaliação nutricional.",
       });
     }
   }

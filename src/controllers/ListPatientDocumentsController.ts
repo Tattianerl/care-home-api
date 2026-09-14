@@ -3,18 +3,36 @@ import { prisma } from "../lib/prisma";
 
 export class ListPatientDocumentsController {
   async handle(request: Request, response: Response) {
-    const patientId = request.params.id as string;
+    try {
+      const patientId = String(request.params.id);
 
-    const documents = await prisma.patientDocument.findMany({
-      where: {
-        patientId,
-        deletedAt: null,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+      if (!patientId) {
+        return response.status(400).json({
+          error: "ID do paciente é obrigatório.",
+        });
+      }
 
-    return response.json(documents);
+      const documents = await prisma.patientDocument.findMany({
+        where: {
+          patientId,
+          deletedAt: null,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return response.status(200).json(documents);
+    } catch (error) {
+      console.error(
+        "Erro ao listar documentos do paciente:",
+        error
+      );
+
+      return response.status(500).json({
+        error: "Erro interno ao listar documentos.",
+      });
+    }
   }
 }
+

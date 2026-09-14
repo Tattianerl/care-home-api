@@ -1,50 +1,100 @@
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "../lib/prisma";
+import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class ToggleUserStatusController {
   async handle(request: Request, response: Response) {
+    const adminId = request.user?.id;
+
+    if (!adminId) {
+      return response.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
     try {
-      // 1. Garante que o middleware injetou o usuário antes de acessar as propriedades
-      if (!request.user) {
-        return response.status(401).json({ error: "Não autorizado." });
+      const id = String(request.params.id ?? "").trim();
+
+      if (!id) {
+        return response.status(400).json({
+          error: "ID do funcionário é obrigatório.",
+        });
       }
 
-      const id  = request.params.id as string; // ID do funcionário a ser alterado
-      const adminId = request.user.id; // ID do administrador logado
-
-      // Impede que o admin se desative por acidente
       if (id === adminId) {
-        return response.status(400).json({ error: "Não pode desativar a sua própria conta." });
+        return response.status(400).json({
+          error: "Você não pode desativar a própria conta.",
+        });
       }
 
-      // 2. Busca o usuário atual no banco
       const user = await prisma.user.findUnique({
         where: { id },
-      });
-
-      if (!user) {
-        return response.status(404).json({ error: "Usuário não encontrado." });
-      }
-
-      // 3. Inverte o status atual usando o campo correto do seu schema: 'ativo' 
-      const updatedUser = await prisma.user.update({
-        where: { id },
-        data: { ativo: !user.ativo }, 
         select: {
           id: true,
           nome: true,
+          email: true,
+          cargo: true,
           ativo: true,
         },
       });
 
-      const mensagem = updatedUser.ativo 
-        ? `Usuário ${updatedUser.nome} reativado com sucesso.` 
-        : `Valeu! Usuário ${updatedUser.nome} desativado com sucesso.`;
+      if (!user) {
+        return response.status(404).json({
+          error: "Funcionário não encontrado.",
+        });
+      }
 
-      return response.status(200).json({ message: mensagem, user: updatedUser });
+      const novoStatus = !user.ativo;
+
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          ativo: novoStatus,
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          cargo: true,
+          ativo: true,
+        },
+      });
+
+      await createAuditLog({
+        userId: adminId,
+        acao: AuditActions.UPDATE,
+        entidade: "USER",
+        entidadeId: user.id,
+        descricao:
+          `Status do funcionário "${user.nome}" ` +
+          `alterado de "${user.ativo ? "ATIVO" : "INATIVO"}" ` +
+          `para "${novoStatus ? "ATIVO" : "INATIVO"}".`,
+      });
+
+      return response.status(200).json({
+        message: novoStatus
+          ? `Funcionário ${user.nome} reativado com sucesso.`
+          : `Funcionário ${user.nome} desativado com sucesso.`,
+        user: updatedUser,
+      });
     } catch (error) {
       console.error("Erro ao alterar status do usuário:", error);
-      return response.status(500).json({ error: "Erro interno ao alterar status do funcionário." });
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        return response.status(404).json({
+          error: "Funcionário não encontrado.",
+        });
+      }
+
+      return response.status(500).json({
+        error: "Erro interno ao alterar o status do funcionário.",
+      });
     }
   }
 }

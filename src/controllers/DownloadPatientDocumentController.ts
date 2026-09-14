@@ -1,53 +1,69 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { supabase } from "../lib/supabase"; 
+import { supabase } from "../lib/supabase";
 
 export class DownloadPatientDocumentController {
   async handle(request: Request, response: Response) {
-    const documentId = request.params.id as string;
+    try {
+      const documentId = String(request.params.id);
 
-    console.log("ID recebido:", documentId);
+      const document = await prisma.patientDocument.findUnique({
+        where: {
+          id: documentId,
+        },
+      });
 
-    // 1. Busca a referência do documento no banco de dados
-    const document = await prisma.patientDocument.findUnique({
-      where: {
-        id: documentId,
-      },
-    });
+      if (!document) {
+        return response.status(404).json({
+          error: "Documento não encontrado",
+        });
+      }
 
-    console.log("Documento encontrado:", document);
+      // Documentos excluídos não podem mais ser baixados
+      if (document.deletedAt) {
+        return response.status(404).json({
+          error: "Documento não encontrado",
+        });
+      }
 
-    if (!document) {
-      console.log("Documento não encontrado no banco.");
-      return response.status(404).json({
-        error: "Documento não encontrado",
+      const { data, error } = await supabase.storage
+        .from("documents")
+        .download(document.arquivo);
+
+      if (error || !data) {
+        console.error(
+          "Erro ao baixar documento do armazenamento:",
+          error
+        );
+
+        return response.status(404).json({
+          error: "Arquivo não encontrado no armazenamento",
+        });
+      }
+
+      const arrayBuffer = await data.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      response.setHeader(
+        "Content-Type",
+        data.type || "application/octet-stream"
+      );
+
+      response.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${document.nome}"`
+      );
+
+      return response.send(buffer);
+    } catch (error) {
+      console.error(
+        "Erro ao baixar documento do paciente:",
+        error
+      );
+
+      return response.status(500).json({
+        error: "Erro ao baixar documento",
       });
     }
-
-    // 2. Faz o download do arquivo diretamente do Supabase Storage
-    const { data, error } = await supabase.storage
-      .from("documents") 
-      .download(document.arquivo);
-
-    if (error || !data) {
-      console.log("Erro ao baixar do Supabase Storage:", error);
-      return response.status(404).json({
-        error: "Arquivo não encontrado no armazenamento",
-      });
-    }
-
-    // 3. Transforma o arquivo (Blob) em um Buffer para o Express conseguir enviar
-    const arrayBuffer = await data.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // 4. Configura os headers para forçar o download no navegador com o nome original
-    response.setHeader("Content-Type", data.type);
-    response.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${document.arquivo}"`
-    );
-
-    // 5. Envia o buffer do arquivo
-    return response.send(buffer);
   }
 }

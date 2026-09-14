@@ -7,9 +7,9 @@ export class GetAppointmentController {
     response: Response
   ) {
     try {
-      const { id } = request.params;
+      const id = String(request.params.id ?? "").trim();
 
-      if (!id || Array.isArray(id)) {
+      if (!id) {
         return response.status(400).json({
           error: "ID do agendamento inválido.",
         });
@@ -43,11 +43,12 @@ export class GetAppointmentController {
         });
       }
 
-      return response.status(200).json(
-        appointment
-      );
+      return response.status(200).json(appointment);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Erro ao buscar agendamento:",
+        error
+      );
 
       return response.status(500).json({
         error: "Erro ao buscar agendamento.",

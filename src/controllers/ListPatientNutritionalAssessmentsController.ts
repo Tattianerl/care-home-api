@@ -4,47 +4,56 @@ import { prisma } from "../lib/prisma";
 export class ListPatientNutritionalAssessmentsController {
   async handle(request: Request, response: Response) {
     try {
-      const  patientId = String(request.params.id);
+      const patientId = String(request.params.id ?? "").trim();
 
       if (!patientId) {
         return response.status(400).json({
-          error: "ID do paciente não foi fornecido.",
+          error: "ID do paciente é obrigatório.",
         });
       }
 
-      // Opcional: Verificar se o paciente existe antes de buscar
-      const patientExists = await prisma.patient.findUnique({
-        where: { id: patientId },
+      const patient = await prisma.patient.findUnique({
+        where: {
+          id: patientId,
+        },
+        select: {
+          id: true,
+        },
       });
 
-      if (!patientExists) {
+      if (!patient) {
         return response.status(404).json({
-          error: "Paciente não encontrado",
+          error: "Paciente não encontrado.",
         });
       }
 
-      const assessments = await prisma.nutritionalAssessment.findMany({
-        where: {
-          patientId,
-        },
-        include: {
-          user: {
-            select: {
-              nome: true,
-              cargo: true,
+      const assessments =
+        await prisma.nutritionalAssessment.findMany({
+          where: {
+            patientId: patient.id,
+          },
+          include: {
+            user: {
+              select: {
+                nome: true,
+                cargo: true,
+              },
             },
           },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
 
-      return response.json(assessments);
+      return response.status(200).json(assessments);
     } catch (error) {
-      console.error("Erro ao listar avaliações nutricionais:", error);
+      console.error(
+        "Erro ao listar avaliações nutricionais:",
+        error
+      );
+
       return response.status(500).json({
-        error: "Erro interno do servidor ao buscar avaliações nutricionais",
+        error: "Erro ao buscar avaliações nutricionais.",
       });
     }
   }

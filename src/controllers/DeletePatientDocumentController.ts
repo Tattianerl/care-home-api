@@ -1,43 +1,43 @@
 import { Request, Response } from "express";
+
 import { prisma } from "../lib/prisma";
+import { createAuditLog } from "../services/audit/createAuditLog";
 import { AuditActions } from "../constants/auditActions";
 
 export class DeletePatientDocumentController {
   async handle(request: Request, response: Response) {
-    const documentId = request.params.id as string;
+    const documentId = String(request.params.id);
+    const userId = request.user?.id;
 
-    const user = (request as any).user; 
-    
-    if (!user) {
+    if (!userId) {
       return response.status(401).json({
         error: "Usuário não autenticado.",
       });
     }
 
-   // Buscar documento
-    const document = await prisma.patientDocument.findUnique({
-      where: { id: documentId },
-      include: {
-        patient: {
-          select: {
-            nome: true,
+    try {
+      const document = await prisma.patientDocument.findUnique({
+        where: { id: documentId },
+        include: {
+          patient: {
+            select: {
+              nome: true,
+            },
           },
         },
-      },
-    });
-    
-    if (!document) {
-      return response.status(404).json({
-        error: "Documento não encontrado.",
       });
-    }
-      if (document.deletedAt) {
-    return response.status(409).json({
-      error: "Este documento já foi excluído.",
-    });
-  }
 
-    try {
+      if (!document) {
+        return response.status(404).json({
+          error: "Documento não encontrado.",
+        });
+      }
+
+      if (document.deletedAt) {
+        return response.status(409).json({
+          error: "Este documento já foi excluído.",
+        });
+      }
 
       await prisma.patientDocument.update({
         where: {
@@ -45,28 +45,30 @@ export class DeletePatientDocumentController {
         },
         data: {
           deletedAt: new Date(),
-          deletedBy: user.id,
-
-          deletedByUserId: user.id,
+          deletedBy: userId,
+          deletedByUserId: userId,
         },
       });
-            
-      // Registra a exclusão no Log de Auditoria
-      await prisma.auditLog.create({
-      data: {
-        acao: AuditActions.DELETE ,
+
+      await createAuditLog({
+        userId,
+        acao: AuditActions.DELETE,
         entidade: "PATIENT_DOCUMENT",
         entidadeId: documentId,
-        descricao: `Documento "${document.nome}" do paciente ${document.patient.nome} foi marcado como excluído.`,
-        userId: user.id
-      }
-    });
-      return response.status(204).send(); 
+        descricao:
+          `Documento "${document.nome}" do paciente ` +
+          `"${document.patient.nome}" foi marcado como excluído.`,
+      });
 
+      return response.status(204).send();
     } catch (error) {
-      console.error("Erro no processo de exclusão:", error);
+      console.error(
+        "Erro ao excluir documento do paciente:",
+        error
+      );
+
       return response.status(500).json({
-        error: "Erro interno ao tentar deletar o documento.",
+        error: "Erro interno ao tentar excluir o documento.",
       });
     }
   }

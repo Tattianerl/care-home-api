@@ -6,18 +6,33 @@ export class GetLatestVitalSignController {
     request: Request<{ id: string }>,
     response: Response
   ) {
-    const patientId = request.params.id;
+    try {
+      const patientId = String(request.params.id);
 
-    const latestVitalSign =
-      await prisma.vitalSign.findFirst({
+      if (!patientId) {
+        return response.status(400).json({
+          error: "ID do paciente é obrigatório.",
+        });
+      }
+
+      const patientExists = await prisma.patient.findUnique({
+        where: { id: patientId },
+        select: { id: true },
+      });
+
+      if (!patientExists) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
+
+      const latestVitalSign = await prisma.vitalSign.findFirst({
         where: {
           patientId,
         },
-
         orderBy: {
           createdAt: "desc",
         },
-
         include: {
           user: {
             select: {
@@ -28,16 +43,26 @@ export class GetLatestVitalSignController {
         },
       });
 
-    if (!latestVitalSign) {
-      return response.status(404).json({
-        error: "Nenhum sinal vital registrado.",
+      if (!latestVitalSign) {
+        return response.status(404).json({
+          error: "Nenhum sinal vital registrado.",
+        });
+      }
+
+      return response.status(200).json({
+        ...latestVitalSign,
+        pressao: `${latestVitalSign.pressaoSistolica}/${latestVitalSign.pressaoDiastolica}`,
+      });
+    } catch (error) {
+      console.error(
+        "Erro ao buscar último sinal vital:",
+        error
+      );
+
+      return response.status(500).json({
+        error: "Erro ao buscar último sinal vital.",
       });
     }
-
-    return response.json({
-      ...latestVitalSign,
-
-      pressao: `${latestVitalSign.pressaoSistolica}/${latestVitalSign.pressaoDiastolica}`,
-    });
   }
 }
+

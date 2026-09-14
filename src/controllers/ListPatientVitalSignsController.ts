@@ -6,58 +6,91 @@ export class ListPatientVitalSignsController {
     request: Request<{ id: string }>,
     response: Response
   ) {
-    const patientId = request.params.id;
+    try {
+      const patientId = String(request.params.id);
 
-    const {
-      startDate,
-      endDate,
-      limit,
-    } = request.query;
+      if (!patientId) {
+        return response.status(400).json({
+          error: "ID do paciente é obrigatório.",
+        });
+      }
 
-    const whereCondition: {
-      patientId: string;
-      createdAt?: {
-        gte?: Date;
-        lte?: Date;
+      const patientExists = await prisma.patient.findUnique({
+        where: { id: patientId },
+        select: { id: true },
+      });
+
+      if (!patientExists) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
+
+      const {
+        startDate,
+        endDate,
+        limit,
+      } = request.query;
+
+      const whereCondition: {
+        patientId: string;
+        createdAt?: {
+          gte?: Date;
+          lte?: Date;
+        };
+      } = {
+        patientId,
       };
-    } = {
-      patientId,
-    };
 
-    if (startDate || endDate) {
-      whereCondition.createdAt = {};
+      if (startDate || endDate) {
+        whereCondition.createdAt = {};
 
-      if (startDate) {
-        whereCondition.createdAt.gte =
-          new Date(String(startDate));
+        if (startDate) {
+          const start = new Date(String(startDate));
+
+          if (Number.isNaN(start.getTime())) {
+            return response.status(400).json({
+              error: "Data inicial inválida.",
+            });
+          }
+
+          start.setHours(0, 0, 0, 0);
+          whereCondition.createdAt.gte = start;
+        }
+
+        if (endDate) {
+          const end = new Date(String(endDate));
+
+          if (Number.isNaN(end.getTime())) {
+            return response.status(400).json({
+              error: "Data final inválida.",
+            });
+          }
+
+          end.setHours(23, 59, 59, 999);
+          whereCondition.createdAt.lte = end;
+        }
       }
 
-      if (endDate) {
-        const end = new Date(String(endDate));
+      let take: number | undefined;
 
-        end.setHours(23, 59, 59, 999);
+      if (limit !== undefined) {
+        const parsedLimit = Number(limit);
 
-        whereCondition.createdAt.lte = end;
+        if (
+          !Number.isInteger(parsedLimit) ||
+          parsedLimit <= 0
+        ) {
+          return response.status(400).json({
+            error: "Limite inválido.",
+          });
+        }
+
+        take = Math.min(parsedLimit, 100);
       }
-    }
 
-    let take: number | undefined;
-
-    if (limit) {
-      const parsedLimit = Number(limit);
-
-      if (
-        Number.isFinite(parsedLimit) &&
-        parsedLimit > 0
-      ) {
-        take = Math.floor(parsedLimit);
-      }
-    }
-
-    const vitalSigns =
-      await prisma.vitalSign.findMany({
+      const vitalSigns = await prisma.vitalSign.findMany({
         where: whereCondition,
-
         include: {
           user: {
             select: {
@@ -66,20 +99,28 @@ export class ListPatientVitalSignsController {
             },
           },
         },
-
         orderBy: {
           createdAt: "desc",
         },
-
         take,
       });
 
-    const data = vitalSigns.map((item) => ({
-      ...item,
+      const data = vitalSigns.map((item) => ({
+        ...item,
+        pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
+      }));
 
-      pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
-    }));
+      return response.status(200).json(data);
+    } catch (error) {
+      console.error(
+        "Erro ao listar sinais vitais do paciente:",
+        error
+      );
 
-    return response.json(data);
+      return response.status(500).json({
+        error: "Erro ao listar sinais vitais do paciente.",
+      });
+    }
   }
 }
+

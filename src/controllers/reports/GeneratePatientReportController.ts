@@ -5,589 +5,739 @@ import { prisma } from "../../lib/prisma";
 
 export class GeneratePatientReportController {
   async handle(request: Request, response: Response) {
-    const patientId = request.params.id as string;
+    try {
+      const patientId = String(request.params.id);
 
-    const patient = await prisma.patient.findUnique({
-      where: {
-        id: patientId,
-      },
-      include: {
-        evolutions: {
-          orderBy: {
-            createdAt: "desc",
-          },
-          include: {
-            user: {
-              select: {
-                nome: true,
-                cargo: true,
+      const patient = await prisma.patient.findUnique({
+        where: {
+          id: patientId,
+        },
+        include: {
+          evolutions: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              user: {
+                select: {
+                  nome: true,
+                  cargo: true,
+                },
               },
             },
           },
-        },
 
-        medications: {
-          include: {
-            user: {
-              select: {
-                nome: true,
-              },
+          medications: {
+            orderBy: {
+              createdAt: "desc",
             },
-            prescritoPor: {
-              select: {
-                nome: true,
+            include: {
+              user: {
+                select: {
+                  nome: true,
+                  cargo: true,
+                },
               },
-            },
-          },
-        },
-
-        vitalSigns: {
-          include: {
-            user: {
-              select: {
-                nome: true,
+              prescritoPor: {
+                select: {
+                  nome: true,
+                },
               },
             },
           },
-          orderBy: {
-            createdAt: "desc",
+
+          vitalSigns: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              user: {
+                select: {
+                  nome: true,
+                  cargo: true,
+                },
+              },
+            },
+          },
+
+          nutritionalAssessments: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              user: {
+                select: {
+                  nome: true,
+                  cargo: true,
+                },
+              },
+            },
+          },
+
+          appointments: {
+            orderBy: {
+              dataHora: "desc",
+            },
+            include: {
+              user: {
+                select: {
+                  nome: true,
+                  cargo: true,
+                },
+              },
+            },
+          },
+
+          documents: {
+            where: {
+              deletedAt: null,
+            },
+            orderBy: {
+              createdAt: "desc",
+            },
           },
         },
-
-        documents: {
-          orderBy: {
-            createdAt: "desc",
-          },
-        },
-      },
-    });
-
-    if (!patient) {
-      return response.status(404).json({
-        error: "Paciente não encontrado.",
-      });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        id: request.user!.id,
-      },
-    });
-
-    const fileName = `Prontuario_${patient.nome.replace(/\s/g, "_")}.pdf`;
-
-    response.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${fileName}"`
-    );
-
-    response.setHeader(
-      "Content-Type",
-      "application/pdf"
-    );
-
-    const doc = new PDFDocument({
-      margin: 45,
-      size: "A4",
-    });
-
-    doc.pipe(response);
-
-    //------------------------------------------------------
-    // CABEÇALHO
-    //------------------------------------------------------
-
-    doc
-      .fontSize(22)
-      .fillColor("#0F766E")
-      .text("CARE HOME", {
-        align: "center",
       });
 
-    doc
-      .fontSize(16)
-      .fillColor("black")
-      .text("Prontuário Completo do Paciente", {
-        align: "center",
+      if (!patient) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: request.user!.id,
+        },
+        select: {
+          nome: true,
+          cargo: true,
+          registroProfissional: true,
+          assinatura: true,
+        },
       });
 
-    doc.moveDown(2);
+      const fileName = `Prontuario_${patient.nome
+        .trim()
+        .replace(/\s+/g, "_")}.pdf`;
 
-    //------------------------------------------------------
-    // DADOS DO PACIENTE
-    //------------------------------------------------------
+      response.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${fileName}"`
+      );
 
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Dados do Paciente");
+      response.setHeader(
+        "Content-Type",
+        "application/pdf"
+      );
 
-    doc.moveDown();
+      const doc = new PDFDocument({
+        margin: 45,
+        size: "A4",
+      });
 
-    doc.fontSize(11).fillColor("black");
+      doc.pipe(response);
 
-    doc.text(`Nome: ${patient.nome}`);
-    doc.text(
-      `Data de nascimento: ${patient.dataNascimento.toLocaleDateString("pt-BR")}`
-    );
+      //------------------------------------------------------
+      // CABEÇALHO
+      //------------------------------------------------------
 
-    doc.text(`CPF: ${patient.cpf ?? "-"}`);
-    doc.text(`RG: ${patient.rg ?? "-"}`);
+      doc
+        .fontSize(22)
+        .fillColor("#0F766E")
+        .text("CARE HOME", {
+          align: "center",
+        });
 
-    doc.text(`Sexo: ${patient.genero}`);
+      doc
+        .fontSize(16)
+        .fillColor("black")
+        .text("Prontuário Completo do Paciente", {
+          align: "center",
+        });
 
-    doc.text(`Naturalidade: ${patient.naturalidade ?? "-"}`);
+      doc.moveDown(2);
 
-    doc.text(`Estado civil: ${patient.estadoCivil ?? "-"}`);
+      //------------------------------------------------------
+      // DADOS DO PACIENTE
+      //------------------------------------------------------
 
-    doc.text(`Cartão SUS: ${patient.cartaoSus ?? "-"}`);
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Dados do Paciente");
 
-    doc.text(`Quarto / Leito: ${patient.quartoLeito ?? "-"}`);
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.fontSize(11).fillColor("black");
 
-    //------------------------------------------------------
-    // RESPONSÁVEL
-    //------------------------------------------------------
+      doc.text(`Nome: ${patient.nome}`);
 
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Responsável");
+      doc.text(
+        `Data de nascimento: ${patient.dataNascimento.toLocaleDateString(
+          "pt-BR"
+        )}`
+      );
 
-    doc.moveDown();
+      doc.text(`CPF: ${patient.cpf ?? "-"}`);
+      doc.text(`RG: ${patient.rg ?? "-"}`);
+      doc.text(`Sexo: ${patient.genero}`);
+      doc.text(`Naturalidade: ${patient.naturalidade ?? "-"}`);
+      doc.text(`Estado civil: ${patient.estadoCivil ?? "-"}`);
+      doc.text(`Cartão SUS: ${patient.cartaoSus ?? "-"}`);
+      doc.text(`Quarto / Leito: ${patient.quartoLeito ?? "-"}`);
 
-    doc.fontSize(11).fillColor("black");
+      doc.moveDown();
 
-    doc.text(`Nome: ${patient.responsavel}`);
+      //------------------------------------------------------
+      // RESPONSÁVEL
+      //------------------------------------------------------
 
-    doc.text(`Telefone: ${patient.telefone}`);
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Responsável");
 
-    doc.text(
-      `CPF: ${patient.responsavelCpf ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.text(
-      `Parentesco: ${patient.responsavelGrauParentesco ?? "-"}`
-    );
+      doc.fontSize(11).fillColor("black");
 
-    doc.text(
-      `E-mail: ${patient.responsavelEmail ?? "-"}`
-    );
+      doc.text(`Nome: ${patient.responsavel}`);
+      doc.text(`Telefone: ${patient.telefone}`);
+      doc.text(`CPF: ${patient.responsavelCpf ?? "-"}`);
+      doc.text(
+        `Parentesco: ${patient.responsavelGrauParentesco ?? "-"}`
+      );
+      doc.text(
+        `E-mail: ${patient.responsavelEmail ?? "-"}`
+      );
+      doc.text(
+        `Endereço: ${patient.responsavelEndereco ?? "-"}`
+      );
 
-    doc.text(
-      `Endereço: ${patient.responsavelEndereco ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      //------------------------------------------------------
+      // DADOS CLÍNICOS
+      //------------------------------------------------------
 
-    //------------------------------------------------------
-    // DADOS CLÍNICOS
-    //------------------------------------------------------
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Dados Clínicos");
 
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Dados Clínicos");
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.fontSize(11).fillColor("black");
 
-    doc.fontSize(11).fillColor("black");
+      doc.text(
+        `Tipo sanguíneo: ${patient.tipoSanguineo ?? "-"}`
+      );
 
-    doc.text(
-      `Tipo sanguíneo: ${patient.tipoSanguineo ?? "-"}`
-    );
+      doc.text(
+        `Plano de saúde: ${patient.planoSaude ?? "-"}`
+      );
 
-    doc.text(
-      `Plano de saúde: ${patient.planoSaude ?? "-"}`
-    );
+      doc.text(
+        `Contato de emergência: ${patient.contatoEmergencia ?? "-"}`
+      );
 
-    doc.text(
-      `Contato de emergência: ${patient.contatoEmergencia ?? "-"}`
-    );
+      doc.text(
+        `Grau de dependência: ${patient.grauDependencia ?? "-"}`
+      );
 
-    doc.text(
-      `Grau de dependência: ${patient.grauDependencia ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.text(
+        `Histórico médico: ${patient.historicoMedico ?? "-"}`
+      );
 
-    doc.text(
-      `Histórico médico: ${patient.historicoMedico ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.text(`Alergias: ${patient.alergias ?? "-"}`);
 
-    doc.text(
-      `Alergias: ${patient.alergias ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.text(
+        `Diagnósticos: ${patient.diagnosticos ?? "-"}`
+      );
 
-    doc.text(
-      `Diagnósticos: ${patient.diagnosticos ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.text(
+        `Restrições alimentares: ${
+          patient.restricaoAlimentar ?? "-"
+        }`
+      );
 
-    doc.text(
-      `Restrições alimentares: ${patient.restricaoAlimentar ?? "-"}`
-    );
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.text(
+        `Observações: ${patient.observacoes ?? "-"}`
+      );
 
-    doc.text(
-      `Observações: ${patient.observacoes ?? "-"}`
-    );
+      doc.moveDown(2);
 
-    doc.moveDown(2);
+      //------------------------------------------------------
+      // MEDICAMENTOS
+      //------------------------------------------------------
 
-        //------------------------------------------------------
-    // MEDICAMENTOS
-    //------------------------------------------------------
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Medicamentos");
 
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Medicamentos");
+      doc.moveDown();
 
-    doc.moveDown();
+      doc.fontSize(11).fillColor("black");
 
-    doc.fontSize(11).fillColor("black");
+      if (patient.medications.length === 0) {
+        doc.text("Nenhum medicamento cadastrado.");
+      } else {
+        patient.medications.forEach((medication) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(medication.nome);
 
-    if (patient.medications.length === 0) {
-      doc.text("Nenhum medicamento cadastrado.");
-    } else {
-      patient.medications.forEach((medication) => {
-        doc
-          .font("Helvetica-Bold")
-          .text(medication.nome);
+          doc.font("Helvetica");
 
-        doc.font("Helvetica");
-
-        doc.text(`Dosagem: ${medication.dosagem}`);
-        doc.text(`Frequência: ${medication.frequencia}`);
-        doc.text(`Via: ${medication.viaAdministracao}`);
-        doc.text(`Status: ${medication.status}`);
-
-        doc.text(
-          `Uso contínuo: ${medication.usoContinuo ? "Sim" : "Não"}`
-        );
-
-        doc.text(
-          `Controlado: ${medication.controlado ? "Sim" : "Não"}`
-        );
-
-        doc.text(
-          `Prescrito por: ${
-            medication.prescritoPor?.nome ?? "-"
-          }`
-        );
-
-        doc.text(
-          `Lançado por: ${
-            medication.user.nome
-          }`
-        );
-
-        if (medication.observacoes) {
+          doc.text(`Dosagem: ${medication.dosagem}`);
+          doc.text(`Frequência: ${medication.frequencia}`);
           doc.text(
-            `Observações: ${medication.observacoes}`
+            `Via: ${medication.viaAdministracao}`
           );
-        }
-
-        doc.moveDown();
-      });
-    }
-
-    doc.moveDown(2);
-
-    //------------------------------------------------------
-    // SINAIS VITAIS
-    //------------------------------------------------------
-
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Sinais Vitais");
-
-    doc.moveDown();
-
-    doc.fontSize(11).fillColor("black");
-
-    if (patient.vitalSigns.length === 0) {
-      doc.text("Nenhum sinal vital registrado.");
-    } else {
-      patient.vitalSigns.forEach((vital) => {
-        doc
-          .font("Helvetica-Bold")
-          .text(
-            new Date(vital.createdAt).toLocaleString("pt-BR")
-          );
-
-        doc.font("Helvetica");
-
-        doc.text(
-          `Pressão Arterial: ${vital.pressaoSistolica}/${vital.pressaoDiastolica} mmHg`
-        );
-
-        doc.text(
-          `Temperatura: ${vital.temperatura} °C`
-        );
-
-        doc.text(
-          `Frequência Cardíaca: ${
-            vital.frequenciaCardiaca ?? "-"
-          } bpm`
-        );
-
-        doc.text(
-          `Frequência Respiratória: ${
-            vital.frequenciaRespiratoria ?? "-"
-          } irpm`
-        );
-
-        doc.text(
-          `Saturação: ${vital.saturacao ?? "-"} %`
-        );
-
-        doc.text(
-          `Glicemia: ${vital.glicemia ?? "-"} mg/dL`
-        );
-
-        doc.text(
-          `Peso: ${vital.peso ?? "-"} kg`
-        );
-
-        doc.text(
-          `Altura: ${vital.altura ?? "-"} m`
-        );
-
-        doc.text(
-          `IMC: ${vital.imc ?? "-"}`
-        );
-
-        doc.text(
-          `Dor (0-10): ${vital.dor ?? "-"}`
-        );
-
-        if (vital.observacoes) {
-          doc.text(
-            `Observações: ${vital.observacoes}`
-          );
-        }
-
-        doc.text(
-          `Profissional: ${vital.user.nome}`
-        );
-
-        doc.moveDown();
-      });
-    }
-
-    doc.moveDown(2);
-
-    //------------------------------------------------------
-    // EVOLUÇÕES
-    //------------------------------------------------------
-
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Evoluções");
-
-    doc.moveDown();
-
-    doc.fontSize(11).fillColor("black");
-
-    if (patient.evolutions.length === 0) {
-      doc.text("Nenhuma evolução registrada.");
-    } else {
-      patient.evolutions.forEach((evolution) => {
-
-        doc
-          .font("Helvetica-Bold")
-          .text(
-            new Date(
-              evolution.createdAt
-            ).toLocaleString("pt-BR")
-          );
-
-        doc.font("Helvetica");
-
-        doc.text(
-          `Profissional: ${evolution.user.nome}`
-        );
-
-        doc.text(
-          `Cargo: ${evolution.user.cargo}`
-        );
-
-        doc.moveDown(0.3);
-
-        doc.text(evolution.descricao);
-
-        doc.moveDown();
-
-      });
-    }
-
-    doc.moveDown(2);
-
-    //------------------------------------------------------
-    // DOCUMENTOS
-    //------------------------------------------------------
-
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Documentos");
-
-    doc.moveDown();
-
-    doc.fontSize(11).fillColor("black");
-
-    if (patient.documents.length === 0) {
-
-      doc.text("Nenhum documento anexado.");
-
-    } else {
-
-      patient.documents.forEach((document) => {
-
-        doc
-          .font("Helvetica-Bold")
-          .text(document.nome);
-
-        doc.font("Helvetica");
-
-        doc.text(`Tipo: ${document.tipo}`);
-
-        doc.text(
-          `Data: ${new Date(
-            document.createdAt
-          ).toLocaleDateString("pt-BR")}`
-        );
-
-        if (document.deletedAt) {
-
-          doc.fillColor("red");
+          doc.text(`Status: ${medication.status}`);
 
           doc.text(
-            `Documento excluído em ${new Date(
-              document.deletedAt
+            `Uso contínuo: ${
+              medication.usoContinuo ? "Sim" : "Não"
+            }`
+          );
+
+          doc.text(
+            `Controlado: ${
+              medication.controlado ? "Sim" : "Não"
+            }`
+          );
+
+          doc.text(
+            `Prescrito por: ${
+              medication.prescritoPor?.nome ?? "-"
+            }`
+          );
+
+          doc.text(
+            `Lançado por: ${
+              medication.user?.nome ?? "-"
+            }`
+          );
+
+          if (medication.observacoes) {
+            doc.text(
+              `Observações: ${medication.observacoes}`
+            );
+          }
+
+          doc.moveDown();
+        });
+      }
+
+      doc.moveDown(2);
+
+      //------------------------------------------------------
+      // SINAIS VITAIS
+      //------------------------------------------------------
+
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Sinais Vitais");
+
+      doc.moveDown();
+
+      doc.fontSize(11).fillColor("black");
+
+      if (patient.vitalSigns.length === 0) {
+        doc.text("Nenhum sinal vital registrado.");
+      } else {
+        patient.vitalSigns.forEach((vital) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(
+              new Date(vital.createdAt).toLocaleString(
+                "pt-BR"
+              )
+            );
+
+          doc.font("Helvetica");
+
+          doc.text(
+            `Pressão Arterial: ${vital.pressaoSistolica}/${vital.pressaoDiastolica} mmHg`
+          );
+
+          doc.text(
+            `Temperatura: ${vital.temperatura} °C`
+          );
+
+          doc.text(
+            `Frequência Cardíaca: ${
+              vital.frequenciaCardiaca ?? "-"
+            } bpm`
+          );
+
+          doc.text(
+            `Frequência Respiratória: ${
+              vital.frequenciaRespiratoria ?? "-"
+            } irpm`
+          );
+
+          doc.text(
+            `Saturação: ${vital.saturacao ?? "-"} %`
+          );
+
+          doc.text(
+            `Glicemia: ${vital.glicemia ?? "-"} mg/dL`
+          );
+
+          doc.text(
+            `Peso: ${vital.peso ?? "-"} kg`
+          );
+
+          doc.text(
+            `Altura: ${vital.altura ?? "-"} m`
+          );
+
+          doc.text(
+            `IMC: ${vital.imc ?? "-"}`
+          );
+
+          doc.text(
+            `Dor (0-10): ${vital.dor ?? "-"}`
+          );
+
+          if (vital.observacoes) {
+            doc.text(
+              `Observações: ${vital.observacoes}`
+            );
+          }
+
+          doc.text(
+            `Profissional: ${vital.user?.nome ?? "-"}`
+          );
+
+          doc.text(
+            `Cargo: ${vital.user?.cargo ?? "-"}`
+          );
+
+          doc.moveDown();
+        });
+      }
+
+      doc.moveDown(2);
+
+      //------------------------------------------------------
+      // AVALIAÇÕES NUTRICIONAIS
+      //------------------------------------------------------
+
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Avaliações Nutricionais");
+
+      doc.moveDown();
+
+      doc.fontSize(11).fillColor("black");
+
+      if (patient.nutritionalAssessments.length === 0) {
+        doc.text("Nenhuma avaliação nutricional registrada.");
+      } else {
+        patient.nutritionalAssessments.forEach((assessment) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(
+              new Date(
+                assessment.createdAt
+              ).toLocaleString("pt-BR")
+            );
+
+          doc.font("Helvetica");
+
+          doc.text(`Peso: ${assessment.peso} kg`);
+          doc.text(`Altura: ${assessment.altura} m`);
+          doc.text(
+            `IMC: ${assessment.imc ?? "-"}`
+          );
+
+          if (assessment.classificacaoImc) {
+            doc.text(
+              `Classificação do IMC: ${assessment.classificacaoImc}`
+            );
+          }
+
+          if (assessment.observacoes) {
+            doc.text(
+              `Observações: ${assessment.observacoes}`
+            );
+          }
+
+          doc.text(
+            `Profissional: ${
+              assessment.user?.nome ?? "-"
+            }`
+          );
+
+          doc.text(
+            `Cargo: ${
+              assessment.user?.cargo ?? "-"
+            }`
+          );
+
+          doc.moveDown();
+        });
+      }
+
+      doc.moveDown(2);
+
+      //------------------------------------------------------
+      // AGENDAMENTOS
+      //------------------------------------------------------
+
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Agendamentos");
+
+      doc.moveDown();
+
+      doc.fontSize(11).fillColor("black");
+
+      if (patient.appointments.length === 0) {
+        doc.text("Nenhum agendamento registrado.");
+      } else {
+        patient.appointments.forEach((appointment) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(
+              new Date(
+                appointment.dataHora
+              ).toLocaleString("pt-BR")
+            );
+
+          doc.font("Helvetica");
+
+          doc.text(
+            `Título: ${appointment.titulo}`
+          );
+
+          doc.text(
+            `Status: ${appointment.status}`
+          );
+
+          doc.text(
+            `Local: ${appointment.local ?? "-"}`
+          );
+
+          if (appointment.observacoes) {
+            doc.text(
+              `Observações: ${appointment.observacoes}`
+            );
+          }
+
+          doc.text(
+            `Registrado por: ${
+              appointment.user?.nome ?? "-"
+            }`
+          );
+
+          doc.text(
+            `Cargo: ${
+              appointment.user?.cargo ?? "-"
+            }`
+          );
+
+          doc.moveDown();
+        });
+      }
+
+      doc.moveDown(2);
+
+      //------------------------------------------------------
+      // EVOLUÇÕES
+      //------------------------------------------------------
+
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Evoluções");
+
+      doc.moveDown();
+
+      doc.fontSize(11).fillColor("black");
+
+      if (patient.evolutions.length === 0) {
+        doc.text("Nenhuma evolução registrada.");
+      } else {
+        patient.evolutions.forEach((evolution) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(
+              new Date(
+                evolution.createdAt
+              ).toLocaleString("pt-BR")
+            );
+
+          doc.font("Helvetica");
+
+          doc.text(
+            `Profissional: ${evolution.user.nome}`
+          );
+
+          doc.text(
+            `Cargo: ${evolution.user.cargo}`
+          );
+
+          doc.moveDown(0.3);
+
+          doc.text(evolution.descricao);
+
+          doc.moveDown();
+        });
+      }
+
+      doc.moveDown(2);
+
+      //------------------------------------------------------
+      // DOCUMENTOS
+      //------------------------------------------------------
+
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Documentos");
+
+      doc.moveDown();
+
+      doc.fontSize(11).fillColor("black");
+
+      if (patient.documents.length === 0) {
+        doc.text("Nenhum documento anexado.");
+      } else {
+        patient.documents.forEach((document) => {
+          doc
+            .font("Helvetica-Bold")
+            .text(document.nome);
+
+          doc.font("Helvetica");
+
+          doc.text(`Tipo: ${document.tipo}`);
+
+          doc.text(
+            `Data: ${new Date(
+              document.createdAt
             ).toLocaleDateString("pt-BR")}`
           );
 
-          doc.text(
-            `Excluído por: ${document.deletedBy}`
-          );
+          doc.moveDown();
+        });
+      }
 
-          doc.fillColor("black");
-        }
+      doc.moveDown(2);
 
-        doc.moveDown();
+      //------------------------------------------------------
+      // RELATÓRIO EMITIDO POR
+      //------------------------------------------------------
 
-      });
+      if (doc.y > 650) {
+        doc.addPage();
+      }
 
-    }
-
-    doc.moveDown(2);
-
-        //------------------------------------------------------
-    // PROFISSIONAL RESPONSÁVEL
-    //------------------------------------------------------
-
-    if (doc.y > 650) {
-      doc.addPage();
-    }
-
-    doc
-      .fontSize(16)
-      .fillColor("#0F766E")
-      .text("Profissional Responsável");
-
-    doc.moveDown();
-
-    doc.fontSize(11).fillColor("black");
-
-    doc.text(`Nome: ${user?.nome ?? "-"}`);
-    doc.text(`Cargo: ${user?.cargo ?? "-"}`);
-
-    if (user?.registroProfissional) {
-      doc.text(
-        `Registro Profissional: ${user.registroProfissional}`
-      );
-    }
-
-    doc.moveDown();
-
-    if (user?.assinatura) {
-      doc.font("Helvetica-Bold").text("Assinatura Digital:");
-
-      doc.font("Helvetica");
-
-      doc.fillColor("blue");
-
-      doc.text(user.assinatura, {
-        link: user.assinatura,
-        underline: true,
-      });
-
-      doc.fillColor("black");
-
-      doc.moveDown(0.5);
-
-      doc.fontSize(10);
-
-      doc.text(
-        "A assinatura digital encontra-se armazenada de forma segura no repositório da Care Home."
-      );
-
-      doc.fontSize(11);
+      doc
+        .fontSize(16)
+        .fillColor("#0F766E")
+        .text("Relatório emitido por");
 
       doc.moveDown();
-    }
 
-    //------------------------------------------------------
-    // RODAPÉ
-    //------------------------------------------------------
+      doc.fontSize(11).fillColor("black");
 
-    doc.moveDown();
+      doc.text(`Nome: ${user?.nome ?? "-"}`);
+      doc.text(`Cargo: ${user?.cargo ?? "-"}`);
 
-    doc
-      .strokeColor("#D1D5DB")
-      .lineWidth(1)
-      .moveTo(45, doc.y)
-      .lineTo(550, doc.y)
-      .stroke();
+      if (user?.registroProfissional) {
+        doc.text(
+          `Registro Profissional: ${user.registroProfissional}`
+        );
+      }
 
-    doc.moveDown();
+      if (user?.assinatura) {
+        doc.moveDown();
 
-    doc
-      .fontSize(10)
-      .fillColor("#6B7280")
-      .text(
-        `Relatório emitido em ${new Date().toLocaleString("pt-BR")}`,
+        doc
+          .font("Helvetica-Bold")
+          .text("Assinatura digital: cadastrada");
+
+        doc.font("Helvetica");
+
+        doc.text(
+          "A assinatura digital do profissional está cadastrada no sistema."
+        );
+      }
+
+      //------------------------------------------------------
+      // RODAPÉ
+      //------------------------------------------------------
+
+      doc.moveDown();
+
+      doc
+        .strokeColor("#D1D5DB")
+        .lineWidth(1)
+        .moveTo(45, doc.y)
+        .lineTo(550, doc.y)
+        .stroke();
+
+      doc.moveDown();
+
+      doc
+        .fontSize(10)
+        .fillColor("#6B7280")
+        .text(
+          `Relatório emitido em ${new Date().toLocaleString(
+            "pt-BR"
+          )}`,
+          {
+            align: "center",
+          }
+        );
+
+      doc.text(
+        "Care Home - Sistema de Gestão para Casa de Repouso",
         {
           align: "center",
         }
       );
 
-    doc.text(
-      "Care Home - Sistema de Gestão para Casa de Repouso",
-      {
-        align: "center",
-      }
-    );
+      doc.text(
+        "Documento gerado automaticamente pelo prontuário eletrônico.",
+        {
+          align: "center",
+        }
+      );
 
-    doc.text(
-      "Documento gerado automaticamente pelo prontuário eletrônico.",
-      {
-        align: "center",
-      }
-    );
+      doc.end();
+    } catch (error) {
+      console.error(
+        "Erro ao gerar prontuário do paciente:",
+        error
+      );
 
-    doc.end();
+      if (!response.headersSent) {
+        return response.status(500).json({
+          error: "Erro ao gerar prontuário do paciente.",
+        });
+      }
+
+      return response.end();
+    }
   }
 }

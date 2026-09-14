@@ -42,10 +42,7 @@ function isMedicationRequestBody(
 }
 
 function isNonEmptyString(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.trim().length > 0
-  );
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 function isMedicationStatus(
@@ -100,16 +97,38 @@ function parseMedicationDate(
   return { value: date };
 }
 
+function formatAuditValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "vazio";
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  if (Array.isArray(value)) {
+    return value.join(", ") || "vazio";
+  }
+
+  return String(value);
+}
+
 export class UpdateMedicationController {
   async handle(
     request: Request,
     response: Response,
   ) {
+    const userId = request.user?.id;
+
+    if (!userId) {
+      return response.status(401).json({
+        error: "Usuário não autenticado.",
+      });
+    }
+
     try {
       const { id } = request.params;
 
-      // IDs das medicações podem ser UUID ou IDs definidos
-      // pelos seeds, como med-001, med-002 etc.
       if (!id || Array.isArray(id)) {
         return response.status(400).json({
           error: "ID da medicação inválido.",
@@ -119,6 +138,15 @@ export class UpdateMedicationController {
       const existingMedication =
         await prisma.medication.findUnique({
           where: { id },
+          include: {
+            prescritoPor: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+              },
+            },
+          },
         });
 
       if (!existingMedication) {
@@ -136,11 +164,8 @@ export class UpdateMedicationController {
         });
       }
 
-      const hasInvalidField = Object.keys(
-        requestBody,
-      ).some(
-        (field) =>
-          !allowedMedicationFields.has(field),
+      const hasInvalidField = Object.keys(requestBody).some(
+        (field) => !allowedMedicationFields.has(field),
       );
 
       if (hasInvalidField) {
@@ -178,11 +203,47 @@ export class UpdateMedicationController {
       }
 
       const data: Prisma.MedicationUpdateInput = {
-        nome,
-        dosagem,
-        frequencia,
-        viaAdministracao,
+        nome: nome.trim(),
+        dosagem: dosagem.trim(),
+        frequencia: frequencia.trim(),
+        viaAdministracao: viaAdministracao.trim(),
       };
+
+      const changes: string[] = [];
+
+      if (
+        existingMedication.nome !== nome.trim()
+      ) {
+        changes.push(
+          `nome: "${existingMedication.nome}" → "${nome.trim()}"`,
+        );
+      }
+
+      if (
+        existingMedication.dosagem !== dosagem.trim()
+      ) {
+        changes.push(
+          `dosagem: "${existingMedication.dosagem}" → "${dosagem.trim()}"`,
+        );
+      }
+
+      if (
+        existingMedication.frequencia !==
+        frequencia.trim()
+      ) {
+        changes.push(
+          `frequência: "${existingMedication.frequencia}" → "${frequencia.trim()}"`,
+        );
+      }
+
+      if (
+        existingMedication.viaAdministracao !==
+        viaAdministracao.trim()
+      ) {
+        changes.push(
+          `via de administração: "${existingMedication.viaAdministracao}" → "${viaAdministracao.trim()}"`,
+        );
+      }
 
       if (
         Object.prototype.hasOwnProperty.call(
@@ -192,6 +253,12 @@ export class UpdateMedicationController {
       ) {
         if (horarios === null) {
           data.horarios = Prisma.DbNull;
+
+          if (existingMedication.horarios !== null) {
+            changes.push(
+              `horários: "${formatAuditValue(existingMedication.horarios)}" → vazio`,
+            );
+          }
         } else {
           if (!isScheduleArray(horarios)) {
             return response.status(400).json({
@@ -201,8 +268,7 @@ export class UpdateMedicationController {
           }
 
           if (
-            new Set(horarios).size !==
-            horarios.length
+            new Set(horarios).size !== horarios.length
           ) {
             return response.status(400).json({
               error:
@@ -211,6 +277,15 @@ export class UpdateMedicationController {
           }
 
           data.horarios = horarios;
+
+          if (
+            JSON.stringify(existingMedication.horarios ?? []) !==
+            JSON.stringify(horarios)
+          ) {
+            changes.push(
+              `horários: "${formatAuditValue(existingMedication.horarios)}" → "${formatAuditValue(horarios)}"`,
+            );
+          }
         }
       }
 
@@ -243,6 +318,19 @@ export class UpdateMedicationController {
 
         data.inicioTratamento =
           parsedInicioTratamento.value;
+
+        if (
+          formatAuditValue(
+            existingMedication.inicioTratamento,
+          ) !==
+          formatAuditValue(
+            parsedInicioTratamento.value,
+          )
+        ) {
+          changes.push(
+            `início do tratamento: "${formatAuditValue(existingMedication.inicioTratamento)}" → "${formatAuditValue(parsedInicioTratamento.value)}"`,
+          );
+        }
       }
 
       if (
@@ -268,13 +356,25 @@ export class UpdateMedicationController {
 
         data.fimTratamento =
           parsedFimTratamento.value;
+
+        if (
+          formatAuditValue(
+            existingMedication.fimTratamento,
+          ) !==
+          formatAuditValue(
+            parsedFimTratamento.value,
+          )
+        ) {
+          changes.push(
+            `fim do tratamento: "${formatAuditValue(existingMedication.fimTratamento)}" → "${formatAuditValue(parsedFimTratamento.value)}"`,
+          );
+        }
       }
 
       if (
         finalInicioTratamento &&
         finalFimTratamento &&
-        finalFimTratamento <
-          finalInicioTratamento
+        finalFimTratamento < finalInicioTratamento
       ) {
         return response.status(400).json({
           error:
@@ -295,6 +395,12 @@ export class UpdateMedicationController {
         }
 
         data.status = status;
+
+        if (existingMedication.status !== status) {
+          changes.push(
+            `status: "${existingMedication.status}" → "${status}"`,
+          );
+        }
       }
 
       if (
@@ -311,6 +417,15 @@ export class UpdateMedicationController {
         }
 
         data.controlado = controlado;
+
+        if (
+          existingMedication.controlado !==
+          controlado
+        ) {
+          changes.push(
+            `controlado: "${existingMedication.controlado}" → "${controlado}"`,
+          );
+        }
       }
 
       if (
@@ -327,6 +442,15 @@ export class UpdateMedicationController {
         }
 
         data.usoContinuo = usoContinuo;
+
+        if (
+          existingMedication.usoContinuo !==
+          usoContinuo
+        ) {
+          changes.push(
+            `uso contínuo: "${existingMedication.usoContinuo}" → "${usoContinuo}"`,
+          );
+        }
       }
 
       if (
@@ -345,7 +469,22 @@ export class UpdateMedicationController {
           });
         }
 
-        data.observacoes = observacoes;
+        const normalizedObservacoes =
+          typeof observacoes === "string"
+            ? observacoes.trim()
+            : null;
+
+        data.observacoes =
+          normalizedObservacoes;
+
+        if (
+          existingMedication.observacoes !==
+          normalizedObservacoes
+        ) {
+          changes.push(
+            `observações: "${formatAuditValue(existingMedication.observacoes)}" → "${formatAuditValue(normalizedObservacoes)}"`,
+          );
+        }
       }
 
       if (
@@ -358,6 +497,12 @@ export class UpdateMedicationController {
           data.prescritoPor = {
             disconnect: true,
           };
+
+          if (existingMedication.prescritoPor) {
+            changes.push(
+              `prescritor: "${existingMedication.prescritoPor.nome}" → vazio`,
+            );
+          }
         } else {
           if (
             !isNonEmptyString(prescritoPorId) ||
@@ -371,9 +516,11 @@ export class UpdateMedicationController {
           const prescritor =
             await prisma.user.findUnique({
               where: {
-                id: prescritoPorId,
+                id: prescritoPorId.trim(),
               },
               select: {
+                id: true,
+                nome: true,
                 cargo: true,
               },
             });
@@ -396,9 +543,18 @@ export class UpdateMedicationController {
 
           data.prescritoPor = {
             connect: {
-              id: prescritoPorId,
+              id: prescritoPorId.trim(),
             },
           };
+
+          if (
+            existingMedication.prescritoPor?.id !==
+            prescritor.id
+          ) {
+            changes.push(
+              `prescritor: "${formatAuditValue(existingMedication.prescritoPor?.nome)}" → "${prescritor.nome}"`,
+            );
+          }
         }
       }
 
@@ -430,23 +586,28 @@ export class UpdateMedicationController {
           },
         });
 
-      await createAuditLog({
-        userId: request.user!.id,
-        acao: AuditActions.UPDATE,
-        entidade: "MEDICATION",
-        entidadeId: medication.id,
-        descricao: `Medicamento ${medication.nome} atualizado para o paciente ${medication.patient.nome}`,
-      });
+      if (changes.length > 0) {
+        await createAuditLog({
+          userId,
+          acao: AuditActions.UPDATE,
+          entidade: "MEDICATION",
+          entidadeId: medication.id,
+          descricao:
+            `Medicamento "${medication.nome}" do paciente ` +
+            `"${medication.patient.nome}" atualizado. ` +
+            `Alterações: ${changes.join("; ")}.`,
+        });
+      }
 
-      return response
-        .status(200)
-        .json(medication);
+      return response.status(200).json(medication);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Erro ao atualizar medicação:",
+        error,
+      );
 
       return response.status(500).json({
-        error:
-          "Erro ao atualizar medicação.",
+        error: "Erro ao atualizar medicação.",
       });
     }
   }

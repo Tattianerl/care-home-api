@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
+
 import { prisma } from "../lib/prisma";
 import { evaluateVitalStatus } from "../utils/evaluateVitalStatus";
 
@@ -18,7 +19,7 @@ export class ListAllVitalSignsController {
       if (search) {
         where.patient = {
           nome: {
-            contains: String(search),
+            contains: String(search).trim(),
             mode: "insensitive",
           },
         };
@@ -28,50 +29,55 @@ export class ListAllVitalSignsController {
         where.createdAt = {};
 
         if (startDate) {
-          where.createdAt.gte = new Date(
-            String(startDate)
-          );
+          const start = new Date(String(startDate));
+
+          if (Number.isNaN(start.getTime())) {
+            return response.status(400).json({
+              error: "Data inicial inválida.",
+            });
+          }
+
+          start.setHours(0, 0, 0, 0);
+          where.createdAt.gte = start;
         }
 
         if (endDate) {
-          const end = new Date(
-            String(endDate)
-          );
+          const end = new Date(String(endDate));
+
+          if (Number.isNaN(end.getTime())) {
+            return response.status(400).json({
+              error: "Data final inválida.",
+            });
+          }
 
           end.setHours(23, 59, 59, 999);
-
           where.createdAt.lte = end;
         }
       }
 
-      const vitalSigns =
-        await prisma.vitalSign.findMany({
-          where,
-
-          include: {
-            patient: {
-              select: {
-                id: true,
-                nome: true,
-              },
-            },
-
-            user: {
-              select: {
-                nome: true,
-                cargo: true,
-              },
+      const vitalSigns = await prisma.vitalSign.findMany({
+        where,
+        include: {
+          patient: {
+            select: {
+              id: true,
+              nome: true,
             },
           },
-
-          orderBy: {
-            createdAt: "desc",
+          user: {
+            select: {
+              nome: true,
+              cargo: true,
+            },
           },
-        });
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
       const data = vitalSigns.map((item) => {
-        const statusCalculado =
-          evaluateVitalStatus(item);
+        const statusCalculado = evaluateVitalStatus(item);
 
         return {
           id: item.id,
@@ -79,34 +85,21 @@ export class ListAllVitalSignsController {
           patientId: item.patient.id,
           patientName: item.patient.nome,
 
-          pressaoSistolica:
-            item.pressaoSistolica,
-
-          pressaoDiastolica:
-            item.pressaoDiastolica,
-
+          pressaoSistolica: item.pressaoSistolica,
+          pressaoDiastolica: item.pressaoDiastolica,
           pressao: `${item.pressaoSistolica}/${item.pressaoDiastolica}`,
 
           temperatura: item.temperatura,
-
-          frequenciaCardiaca:
-            item.frequenciaCardiaca,
-
-          frequenciaRespiratoria:
-            item.frequenciaRespiratoria,
-
+          frequenciaCardiaca: item.frequenciaCardiaca,
+          frequenciaRespiratoria: item.frequenciaRespiratoria,
           saturacao: item.saturacao,
-
           glicemia: item.glicemia,
 
           peso: item.peso,
-
           altura: item.altura,
-
           imc: item.imc,
 
           dor: item.dor,
-
           observacoes: item.observacoes,
 
           createdAt: item.createdAt,
@@ -122,12 +115,11 @@ export class ListAllVitalSignsController {
 
       const filteredData = status
         ? data.filter(
-            (item) =>
-              item.status === String(status)
+            (item) => item.status === String(status)
           )
         : data;
 
-      return response.json(filteredData);
+      return response.status(200).json(filteredData);
     } catch (error) {
       console.error(
         "Erro ao listar sinais vitais:",
@@ -140,3 +132,4 @@ export class ListAllVitalSignsController {
     }
   }
 }
+

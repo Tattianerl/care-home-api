@@ -3,25 +3,66 @@ import { prisma } from "../lib/prisma";
 
 export class ListPatientMedicationsController {
   async handle(request: Request, response: Response) {
-    const patientId = request.params.id as string;
+    try {
+      const patientId = request.params.id;
 
-    const medications = await prisma.medication.findMany({
-      where: {
-        patientId,
-      },
-      include: {
-        user: {
-          select: {
-            nome: true,
-            cargo: true,
+      if (!patientId || Array.isArray(patientId)) {
+        return response.status(400).json({
+          error: "ID do paciente inválido.",
+        });
+      }
+
+      const patient = await prisma.patient.findUnique({
+        where: {
+          id: patientId,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!patient) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
+
+      const medications = await prisma.medication.findMany({
+        where: {
+          patientId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              nome: true,
+              cargo: true,
+            },
+          },
+          prescritoPor: {
+            select: {
+              id: true,
+              nome: true,
+              cargo: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
-    return response.json(medications);
+      return response.status(200).json(medications);
+    } catch (error) {
+      console.error(
+        "Erro ao listar medicações do paciente:",
+        error,
+      );
+
+      return response.status(500).json({
+        error: "Erro ao listar medicações do paciente.",
+      });
+    }
   }
 }
+

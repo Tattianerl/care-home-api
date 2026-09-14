@@ -3,29 +3,37 @@ import { prisma } from "../lib/prisma";
 
 export class DeleteNutritionalAssessmentController {
   async handle(request: Request, response: Response) {
-    try {
-      const assessmentId = String(request.params.id);
+    const assessmentId = String(request.params.id);
 
-      const assessmentExists = await prisma.nutritionalAssessment.findUnique({
-        where: { id: assessmentId },
-      });
+    const assessment = await prisma.nutritionalAssessment.findUnique({
+      where: { id: assessmentId },
+      include: {
+        patient: {
+          select: {
+            id: true,
+            nome: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            nome: true,
+            cargo: true,
+          },
+        },
+      },
+    });
 
-      if (!assessmentExists) {
-        return response.status(404).json({
-          error: "Avaliação nutricional não encontrada.",
-        });
-      }
-
-      await prisma.nutritionalAssessment.delete({
-        where: { id: assessmentId },
-      });
-
-      return response.status(204).send();
-    } catch (error) {
-      console.error("Erro ao deletar avaliação nutricional:", error);
-      return response.status(500).json({
-        error: "Erro ao deletar avaliação nutricional",
+    if (!assessment) {
+      return response.status(404).json({
+        error: "Avaliação nutricional não encontrada.",
       });
     }
+
+    return response.status(409).json({
+      error: "Exclusão de avaliação nutricional não permitida",
+      message:
+        "Avaliações nutricionais não podem ser excluídas fisicamente. Para corrigir uma informação, utilize o procedimento de correção ou adendo definido pela instituição.",
+    });
   }
 }

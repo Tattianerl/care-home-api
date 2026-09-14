@@ -1,69 +1,115 @@
 import { Request, Response } from "express";
 import { hash } from "bcryptjs";
-import { UserRole } from "@prisma/client";
-import { prisma } from "../lib/prisma"; 
+import { Prisma } from "@prisma/client";
+
+import { prisma } from "../lib/prisma";
+import { createAuditLog } from "../services/audit/createAuditLog";
+import { AuditActions } from "../constants/auditActions";
 
 export class ResetPasswordByAdminController {
   async handle(request: Request, response: Response) {
-    
-    const { funcionarioId, novaSenhaProvisoria } = request.body;
-    
-    const user = request.user;
+    const adminUserId = request.user?.id;
 
-    if (!user || !user.cargo) {
+    if (!adminUserId) {
       return response.status(401).json({
         error: "Usuário não autenticado.",
       });
     }
 
-    const adminCargo = String(user.cargo).toUpperCase();
-
-    // 2. Bloqueio de segurança: Apenas administradores podem usar esta rota
-    if (adminCargo !== UserRole.ADMIN) {
-      return response.status(403).json({ 
-        error: "Acesso negado. Apenas administradores podem resetar senhas." 
-      });
-    }
-
-    // 3. Validações básicas de campos
-    if (!funcionarioId || !novaSenhaProvisoria) {
-      return response.status(400).json({ 
-        error: "O ID do funcionário e a nova senha são obrigatórios." 
-      });
-    }
-
-    if (novaSenhaProvisoria.length < 6) {
-      return response.status(400).json({
-        error: "A senha provisória deve conter no mínimo 6 caracteres."
-      });
-    }
-
     try {
-      // 4. Verifica se o funcionário realmente existe no banco de dados
-      const funcionarioExists = await prisma.user.findUnique({
-        where: { id: funcionarioId }
-      });
+      const { funcionarioId, novaSenhaProvisoria } = request.body;
 
-      if (!funcionarioExists) {
-        return response.status(404).json({ error: "Funcionário não encontrado." });
+      if (
+        typeof funcionarioId !== "string" ||
+        !funcionarioId.trim()
+      ) {
+        return response.status(400).json({
+          error: "O ID do funcionário é obrigatório.",
+        });
       }
 
-      // 5. Criptografa a nova senha provisória de forma segura
-      const senhaHash = await hash(novaSenhaProvisoria, 8);
+      if (
+        typeof novaSenhaProvisoria !== "string" ||
+        !novaSenhaProvisoria
+      ) {
+        return response.status(400).json({
+          error: "A nova senha provisória é obrigatória.",
+        });
+      }
 
-      // 6. Atualiza a senha dele no banco do Supabase via Prisma
+      if (novaSenhaProvisoria.length < 8) {
+        return response.status(400).json({
+          error: "A senha provisória deve conter pelo menos 8 caracteres.",
+        });
+      }
+
+      const funcionarioIdNormalizado = funcionarioId.trim();
+
+      if (funcionarioIdNormalizado === adminUserId) {
+        return response.status(400).json({
+          error:
+            "Para alterar a própria senha, utilize a opção de alteração de senha do seu perfil.",
+        });
+      }
+
+      const funcionario = await prisma.user.findUnique({
+        where: {
+          id: funcionarioIdNormalizado,
+        },
+        select: {
+          id: true,
+          nome: true,
+          email: true,
+          cargo: true,
+          ativo: true,
+        },
+      });
+
+      if (!funcionario) {
+        return response.status(404).json({
+          error: "Funcionário não encontrado.",
+        });
+      }
+
+      const senhaHash = await hash(novaSenhaProvisoria, 10);
+
       await prisma.user.update({
-        where: { id: funcionarioId },
-        data: { senha: senhaHash },
+        where: {
+          id: funcionario.id,
+        },
+        data: {
+          senha: senhaHash,
+        },
       });
 
-      return response.status(200).json({ 
-        message: `A senha de ${funcionarioExists.nome} foi redefinida com sucesso!` 
+      await createAuditLog({
+        userId: adminUserId,
+        acao: AuditActions.UPDATE,
+        entidade: "USER",
+        entidadeId: funcionario.id,
+        descricao:
+          `Senha do funcionário "${funcionario.nome}" ` +
+          `(${funcionario.email}) foi redefinida por um administrador.`,
       });
 
+      return response.status(200).json({
+        message: "Senha redefinida com sucesso.",
+      });
     } catch (error) {
       console.error("Erro ao resetar senha:", error);
-      return response.status(500).json({ error: "Erro interno do servidor." });
+
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        return response.status(404).json({
+          error: "Funcionário não encontrado.",
+        });
+      }
+
+      return response.status(500).json({
+        error: "Erro interno ao redefinir a senha.",
+      });
     }
   }
 }

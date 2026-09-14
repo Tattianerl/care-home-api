@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { hash } from "bcryptjs";
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
@@ -31,6 +31,10 @@ export class RegisterController {
         where: {
           id: requestUserId,
         },
+        select: {
+          id: true,
+          cargo: true,
+        },
       });
 
       if (!adminUser || adminUser.cargo !== UserRole.ADMIN) {
@@ -40,28 +44,102 @@ export class RegisterController {
         });
       }
 
-      const emailExists = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
-
-      if (emailExists) {
+      // Nome é obrigatório no schema
+      if (
+        typeof nome !== "string" ||
+        !nome.trim()
+      ) {
         return response.status(400).json({
-          error: "E-mail já cadastrado.",
+          error: "Nome é obrigatório.",
+        });
+      }
+
+      // E-mail é obrigatório e único no schema
+      if (
+        typeof email !== "string" ||
+        !email.trim()
+      ) {
+        return response.status(400).json({
+          error: "E-mail é obrigatório.",
+        });
+      }
+
+      // Senha é obrigatória no schema
+      if (
+        typeof senha !== "string" ||
+        !senha.trim()
+      ) {
+        return response.status(400).json({
+          error: "Senha é obrigatória.",
+        });
+      }
+
+      if (senha.length < 8) {
+        return response.status(400).json({
+          error: "A senha deve ter pelo menos 8 caracteres.",
+        });
+      }
+
+      // Cargo é obrigatório e deve pertencer ao enum UserRole
+      if (
+        typeof cargo !== "string" ||
+        !Object.values(UserRole).includes(
+          cargo as UserRole
+        )
+      ) {
+        return response.status(400).json({
+          error: "Cargo inválido.",
+        });
+      }
+
+      // CPF é obrigatório e único no schema
+      if (
+        typeof cpf !== "string" ||
+        !cpf.trim()
+      ) {
+        return response.status(400).json({
+          error: "CPF é obrigatório.",
         });
       }
 
       const cpfLimpo = cpf.replace(/\D/g, "");
 
+      if (cpfLimpo.length !== 11) {
+        return response.status(400).json({
+          error: "CPF inválido. Informe um CPF com 11 dígitos.",
+        });
+      }
+
+      const nomeNormalizado = nome.trim();
+      const emailNormalizado = email.trim().toLowerCase();
+      const cargoNormalizado = cargo.trim().toUpperCase() as UserRole;
+
+      const emailExists = await prisma.user.findUnique({
+        where: {
+          email: emailNormalizado,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (emailExists) {
+        return response.status(409).json({
+          error: "E-mail já cadastrado.",
+        });
+      }
+
       const cpfExists = await prisma.user.findUnique({
         where: {
           cpf: cpfLimpo,
         },
+        select: {
+          id: true,
+        },
       });
 
       if (cpfExists) {
-        return response.status(400).json({
+        return response.status(409).json({
           error: "CPF já cadastrado.",
         });
       }
@@ -70,14 +148,25 @@ export class RegisterController {
 
       const user = await prisma.user.create({
         data: {
-          nome,
-          email,
+          nome: nomeNormalizado,
+          email: emailNormalizado,
           cpf: cpfLimpo,
-          telefone,
           senha: senhaHash,
-          cargo,
-          registroProfissional,
+          cargo: cargoNormalizado,
+
+          telefone:
+            typeof telefone === "string" &&
+            telefone.trim()
+              ? telefone.trim()
+              : undefined,
+
+          registroProfissional:
+            typeof registroProfissional === "string" &&
+            registroProfissional.trim()
+              ? registroProfissional.trim()
+              : undefined,
         },
+
         select: {
           id: true,
           nome: true,
@@ -96,12 +185,29 @@ export class RegisterController {
         acao: AuditActions.CREATE,
         entidade: "USER",
         entidadeId: user.id,
-        descricao: `Funcionário ${user.nome} cadastrado.`,
+        descricao:
+          `Funcionário "${user.nome}" ` +
+          `cadastrado com o cargo "${user.cargo}".`,
       });
 
       return response.status(201).json(user);
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Erro ao cadastrar funcionário:",
+        error
+      );
+
+      // Proteção adicional caso dois cadastros
+      // concorrentes atinjam uma constraint UNIQUE.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        return response.status(409).json({
+          error:
+            "Já existe um funcionário com um dos dados informados.",
+        });
+      }
 
       return response.status(500).json({
         error: "Erro ao cadastrar funcionário.",

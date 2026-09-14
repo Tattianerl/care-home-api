@@ -3,59 +3,63 @@ import { prisma } from "../lib/prisma";
 
 export class DashboardController {
   async handle(request: Request, response: Response) {
-    const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
+    try {
+      const [
+        totalPatients,
+        activePatients,
+        inactivePatients,
+        totalEvolutions,
+        totalVitalSigns,
+        totalMedications,
+        totalDocuments,
+        totalAppointments,
+      ] = await Promise.all([
+        prisma.patient.count(),
 
-    const endOfDay = new Date(today);
-    endOfDay.setHours(23, 59, 59, 999);
+        prisma.patient.count({
+          where: {
+            ativo: true,
+          },
+        }),
 
-    const [
-      totalPatients,
-      activePatients,
-      inactivePatients,
-      totalEvolutions,
-      totalVitalSigns,
-      
-      totalMedications,
-      totalDocuments,
-      totalAppointments,
-    ] = await Promise.all([
+        prisma.patient.count({
+          where: {
+            ativo: false,
+          },
+        }),
 
-      prisma.patient.count(),
+        prisma.evolution.count(),
 
-      prisma.patient.count({
-        where: {
-          ativo: true,
-        },
-      }),
+        prisma.vitalSign.count(),
 
-      prisma.patient.count({
-        where: {
-          ativo: false,
-        },
-      }),
+        prisma.medication.count(),
 
-      prisma.evolution.count(),
+        prisma.patientDocument.count({
+          where: {
+            deletedAt: null,
+          },
+        }),
 
-      prisma.vitalSign.count(),
+        prisma.appointment.count(),
+      ]);
 
-      prisma.medication.count(),
+      return response.status(200).json({
+        patients: totalPatients,
+        activePatients,
+        inactivePatients,
+        evolutions: totalEvolutions,
+        vitalSigns: totalVitalSigns,
+        medications: totalMedications,
+        documents: totalDocuments,
+        appointments: totalAppointments,
+      });
+    } catch (error) {
+      console.error("Erro ao carregar dashboard:", error);
 
-      prisma.patientDocument.count(),
-
-      prisma.appointment.count(),
-    ]);
-
-    return response.status(200).json({
-      patients: totalPatients,
-      activePatients,
-      inactivePatients,
-      evolutions: totalEvolutions,
-      vitalSigns: totalVitalSigns,
-      medications: totalMedications,
-      documents: totalDocuments,
-      appointments: totalAppointments,
-    });
+      return response.status(500).json({
+        error: "Erro ao carregar dados do dashboard.",
+      });
+    }
   }
 }
+

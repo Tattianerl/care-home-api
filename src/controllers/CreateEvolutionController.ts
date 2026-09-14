@@ -3,63 +3,96 @@ import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
 import { AuditActions } from "../constants/auditActions";
 
-
 export class CreateEvolutionController {
   async handle(request: Request, response: Response) {
-    const {
-      descricao,
-      patientId,
-      assinatura,
-    } = request.body;
-
     const userId = request.user?.id;
 
     if (!userId) {
       return response.status(401).json({
-        error: "Usuário não autenticado",
+        error: "Usuário não autenticado.",
       });
     }
 
-    const patient = await prisma.patient.findUnique({
-      where: {
-        id: patientId,
-      },
-    });
+    try {
+      const { descricao, patientId } = request.body;
 
-    if (!patient) {
-      return response.status(404).json({
-        error: "Paciente não encontrado",
+      if (
+        typeof patientId !== "string" ||
+        !patientId.trim()
+      ) {
+        return response.status(400).json({
+          error: "ID do paciente é obrigatório.",
+        });
+      }
+
+      if (
+        typeof descricao !== "string" ||
+        !descricao.trim()
+      ) {
+        return response.status(400).json({
+          error: "Descrição da evolução é obrigatória.",
+        });
+      }
+
+      const patient = await prisma.patient.findUnique({
+        where: {
+          id: patientId,
+        },
       });
-    }
 
-    let evolutionSignature = assinatura;
+      if (!patient) {
+        return response.status(404).json({
+          error: "Paciente não encontrado.",
+        });
+      }
 
-    if (!evolutionSignature) {
+      if (!patient.ativo) {
+        return response.status(409).json({
+          error: "Não é possível registrar evolução para paciente inativo.",
+        });
+      }
+
       const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { assinatura: true },
+        where: {
+          id: userId,
+        },
+        select: {
+          assinatura: true,
+        },
       });
 
-      evolutionSignature = user?.assinatura || null;
-    }
+      if (!user) {
+        return response.status(401).json({
+          error: "Usuário autenticado não encontrado.",
+        });
+      }
 
-    const evolution = await prisma.evolution.create({
-      data: {
-        descricao,
-        assinatura: evolutionSignature,
-        patientId,
+      const evolution = await prisma.evolution.create({
+        data: {
+          descricao: descricao.trim(),
+          assinatura: user.assinatura ?? null,
+          patientId,
+          userId,
+        },
+      });
+
+      await createAuditLog({
         userId,
-      },
-    });
+        acao: AuditActions.CREATE,
+        entidade: "EVOLUTION",
+        entidadeId: evolution.id,
+        descricao:
+          `Nova evolução registrada para o paciente ` +
+          `"${patient.nome}".`,
+      });
 
-    await createAuditLog({
-      userId,
-      acao: AuditActions.CREATE,
-      entidade: "EVOLUTION",
-      entidadeId: evolution.id,
-      descricao: `Nova evolução registrada para o paciente ${patient.nome}`,
-    });
+      return response.status(201).json(evolution);
+    } catch (error) {
+      console.error("Erro ao registrar evolução:", error);
 
-    return response.status(201).json(evolution);
+      return response.status(500).json({
+        error: "Erro ao registrar evolução.",
+      });
+    }
   }
 }

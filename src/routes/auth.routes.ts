@@ -712,13 +712,13 @@ authRoutes.get("/medications/:id",
 
 authRoutes.get("/patients/:id/timeline",
   authMiddleware,
-  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO),
   patientTimelineController.handle
 );
 
 authRoutes.get("/patients/:id/report",
   authMiddleware,
-  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO, UserRole.RECEPCAO),
+  roleMiddleware(UserRole.COORDENADOR, UserRole.ASSISTENTE_SOCIAL, UserRole.MEDICO, UserRole.ENFERMEIRO, UserRole.TECNICO_ENFERMAGEM, UserRole.FISIOTERAPEUTA, UserRole.NUTRICIONISTA, UserRole.PSICOLOGO, UserRole.TERAPEUTA_OCUPACIONAL, UserRole.FONOAUDIOLOGO),
   generatePatientReportController.handle
 );
 
