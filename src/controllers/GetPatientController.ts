@@ -26,8 +26,8 @@ export class GetPatientController {
                 select: {
                   id: true,
                   nome: true,
-                  email: true,
                   cargo: true,
+                  registroProfissional: true,
                 },
               },
             },

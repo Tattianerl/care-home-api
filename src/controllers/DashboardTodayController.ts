@@ -27,17 +27,37 @@ export class DashboardTodayController {
         ultimosPacientes,
         ultimasEvolucoes,
         proximosAtendimentosDetalhados,
-        pacientesSemEvolucaoHoje,
-        pacientesSemSinaisVitaisHoje,
         atividadeRecente,
       ] = await Promise.all([
+        /*
+         * ============================================================
+         * PACIENTES ATIVOS
+         * ============================================================
+         */
+
         prisma.patient.count({
-          where: { ativo: true },
+          where: {
+            ativo: true,
+          },
         }),
 
+        /*
+         * ============================================================
+         * PROFISSIONAIS ATIVOS
+         * ============================================================
+         */
+
         prisma.user.count({
-          where: { ativo: true },
+          where: {
+            ativo: true,
+          },
         }),
+
+        /*
+         * ============================================================
+         * ATENDIMENTOS DE HOJE
+         * ============================================================
+         */
 
         prisma.appointment.count({
           where: {
@@ -47,6 +67,12 @@ export class DashboardTodayController {
             },
           },
         }),
+
+        /*
+         * ============================================================
+         * PRÓXIMOS ATENDIMENTOS
+         * ============================================================
+         */
 
         prisma.appointment.count({
           where: {
@@ -57,6 +83,12 @@ export class DashboardTodayController {
           },
         }),
 
+        /*
+         * ============================================================
+         * EVOLUÇÕES REGISTRADAS HOJE
+         * ============================================================
+         */
+
         prisma.evolution.count({
           where: {
             createdAt: {
@@ -65,6 +97,12 @@ export class DashboardTodayController {
             },
           },
         }),
+
+        /*
+         * ============================================================
+         * DOCUMENTOS REGISTRADOS HOJE
+         * ============================================================
+         */
 
         prisma.patientDocument.count({
           where: {
@@ -76,6 +114,12 @@ export class DashboardTodayController {
           },
         }),
 
+        /*
+         * ============================================================
+         * SINAIS VITAIS REGISTRADOS HOJE
+         * ============================================================
+         */
+
         prisma.vitalSign.count({
           where: {
             createdAt: {
@@ -84,6 +128,12 @@ export class DashboardTodayController {
             },
           },
         }),
+
+        /*
+         * ============================================================
+         * AVALIAÇÕES NUTRICIONAIS REGISTRADAS HOJE
+         * ============================================================
+         */
 
         prisma.nutritionalAssessment.count({
           where: {
@@ -94,14 +144,32 @@ export class DashboardTodayController {
           },
         }),
 
+        /*
+         * ============================================================
+         * ÚLTIMOS PACIENTES
+         * ============================================================
+         */
+
         prisma.patient.findMany({
-          where: { ativo: true },
-          orderBy: { createdAt: "desc" },
+          where: {
+            ativo: true,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
           take: 5,
         }),
 
+        /*
+         * ============================================================
+         * ÚLTIMAS EVOLUÇÕES
+         * ============================================================
+         */
+
         prisma.evolution.findMany({
-          orderBy: { createdAt: "desc" },
+          orderBy: {
+            createdAt: "desc",
+          },
           take: 5,
           include: {
             patient: {
@@ -112,12 +180,20 @@ export class DashboardTodayController {
             },
             user: {
               select: {
+                id: true,
                 nome: true,
                 cargo: true,
+                registroProfissional: true,
               },
             },
           },
         }),
+
+        /*
+         * ============================================================
+         * PRÓXIMOS ATENDIMENTOS DETALHADOS
+         * ============================================================
+         */
 
         prisma.appointment.findMany({
           where: {
@@ -140,43 +216,11 @@ export class DashboardTodayController {
           },
         }),
 
-        prisma.patient.findMany({
-          where: {
-            ativo: true,
-            evolutions: {
-              none: {
-                createdAt: {
-                  gte: startOfDay,
-                  lte: endOfDay,
-                },
-              },
-            },
-          },
-          select: {
-            id: true,
-            nome: true,
-          },
-          take: 10,
-        }),
-
-        prisma.patient.findMany({
-          where: {
-            ativo: true,
-            vitalSigns: {
-              none: {
-                createdAt: {
-                  gte: startOfDay,
-                  lte: endOfDay,
-                },
-              },
-            },
-          },
-          select: {
-            id: true,
-            nome: true,
-          },
-          take: 10,
-        }),
+        /*
+         * ============================================================
+         * ATIVIDADE RECENTE
+         * ============================================================
+         */
 
         prisma.auditLog.findMany({
           orderBy: {
@@ -186,6 +230,7 @@ export class DashboardTodayController {
           include: {
             user: {
               select: {
+                id: true,
                 nome: true,
                 cargo: true,
               },
@@ -194,17 +239,30 @@ export class DashboardTodayController {
         }),
       ]);
 
-      const pendencias = [
-        ...pacientesSemEvolucaoHoje.map((patient) => ({
-          tipo: "EVOLUTION",
-          mensagem: `${patient.nome} está sem evolução hoje`,
-        })),
+      /*
+       * ============================================================
+       * PENDÊNCIAS
+       * ============================================================
+       *
+       * Não criamos pendências clínicas automaticamente para:
+       *
+       * - paciente sem evolução no dia;
+       * - paciente sem sinal vital no dia.
+       *
+       * Essas regras dependem da rotina institucional e não estão
+       * definidas no Prisma.
+       */
 
-        ...pacientesSemSinaisVitaisHoje.map((patient) => ({
-          tipo: "VITAL_SIGN",
-          mensagem: `${patient.nome} está sem sinais vitais hoje`,
-        })),
-      ];
+      const pendencias: Array<{
+        tipo: string;
+        mensagem: string;
+      }> = [];
+
+      /*
+       * ============================================================
+       * RESPOSTA
+       * ============================================================
+       */
 
       return response.status(200).json({
         pacientesAtivos,
@@ -239,4 +297,3 @@ export class DashboardTodayController {
     }
   }
 }
-

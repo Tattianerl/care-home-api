@@ -34,9 +34,17 @@ export class CreateEvolutionController {
         });
       }
 
+      const normalizedPatientId = patientId.trim();
+      const normalizedDescricao = descricao.trim();
+
       const patient = await prisma.patient.findUnique({
         where: {
-          id: patientId,
+          id: normalizedPatientId,
+        },
+        select: {
+          id: true,
+          nome: true,
+          ativo: true,
         },
       });
 
@@ -48,7 +56,8 @@ export class CreateEvolutionController {
 
       if (!patient.ativo) {
         return response.status(409).json({
-          error: "Não é possível registrar evolução para paciente inativo.",
+          error:
+            "Não é possível registrar evolução para paciente inativo.",
         });
       }
 
@@ -57,6 +66,9 @@ export class CreateEvolutionController {
           id: userId,
         },
         select: {
+          id: true,
+          nome: true,
+          cargo: true,
           assinatura: true,
         },
       });
@@ -69,10 +81,10 @@ export class CreateEvolutionController {
 
       const evolution = await prisma.evolution.create({
         data: {
-          descricao: descricao.trim(),
+          descricao: normalizedDescricao,
           assinatura: user.assinatura ?? null,
-          patientId,
-          userId,
+          patientId: normalizedPatientId,
+          userId: user.id,
         },
       });
 
@@ -82,8 +94,8 @@ export class CreateEvolutionController {
         entidade: "EVOLUTION",
         entidadeId: evolution.id,
         descricao:
-          `Nova evolução registrada para o paciente ` +
-          `"${patient.nome}".`,
+          `Nova evolução registrada por "${user.nome}" ` +
+          `para o paciente "${patient.nome}".`,
       });
 
       return response.status(201).json(evolution);

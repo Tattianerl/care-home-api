@@ -5,40 +5,65 @@ import { prisma } from "../../lib/prisma";
 import { formatDate } from "../../utils/formatDate";
 import { formatValue } from "../../utils/formatValue";
 
+function formatHorarios(value: unknown): string {
+  if (!Array.isArray(value)) {
+    return "";
+  }
+
+  return value
+    .filter(
+      (item): item is string =>
+        typeof item === "string"
+    )
+    .join(" • ");
+}
+
 export class ExportMedicationsPdfController {
-  async handle(request: Request, response: Response) {
+  async handle(
+    request: Request,
+    response: Response,
+  ) {
     try {
-      const medications = await prisma.medication.findMany({
-        include: {
-          patient: {
-            select: {
-              nome: true,
-            },
-          },
-          user: {
-            select: {
-              nome: true,
-              cargo: true,
-            },
-          },
-          prescritoPor: {
-            select: {
-              nome: true,
-              cargo: true,
-            },
-          },
-        },
-        orderBy: [
-          {
+      const medications =
+        await prisma.medication.findMany({
+          include: {
             patient: {
-              nome: "asc",
+              select: {
+                id: true,
+                nome: true,
+              },
+            },
+
+            user: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+                registroProfissional: true,
+              },
+            },
+
+            prescritoPor: {
+              select: {
+                id: true,
+                nome: true,
+                cargo: true,
+                registroProfissional: true,
+              },
             },
           },
-          {
-            createdAt: "desc",
-          },
-        ],
-      });
+
+          orderBy: [
+            {
+              patient: {
+                nome: "asc",
+              },
+            },
+            {
+              createdAt: "desc",
+            },
+          ],
+        });
 
       const doc = new PDFDocument({
         margin: 45,
@@ -85,7 +110,9 @@ export class ExportMedicationsPdfController {
         .fontSize(9)
         .fillColor("#6B7280")
         .text(
-          `Emitido em: ${new Date().toLocaleString("pt-BR")}`,
+          `Emitido em: ${new Date().toLocaleString(
+            "pt-BR",
+          )}`,
           {
             align: "center",
           },
@@ -112,7 +139,9 @@ export class ExportMedicationsPdfController {
           .font("Helvetica")
           .fontSize(10)
           .fillColor("#6B7280")
-          .text("Nenhum medicamento cadastrado.");
+          .text(
+            "Nenhum medicamento cadastrado.",
+          );
 
         doc.end();
         return;
@@ -172,7 +201,9 @@ export class ExportMedicationsPdfController {
         doc.font("Helvetica");
 
         doc.text(
-          `Dosagem: ${formatValue(medication.dosagem)}`,
+          `Dosagem: ${formatValue(
+            medication.dosagem,
+          )}`,
         );
 
         doc.text(
@@ -195,13 +226,17 @@ export class ExportMedicationsPdfController {
 
         doc.text(
           `Uso contínuo: ${
-            medication.usoContinuo ? "Sim" : "Não"
+            medication.usoContinuo
+              ? "Sim"
+              : "Não"
           }`,
         );
 
         doc.text(
           `Controlado: ${
-            medication.controlado ? "Sim" : "Não"
+            medication.controlado
+              ? "Sim"
+              : "Não"
           }`,
         );
 
@@ -211,19 +246,18 @@ export class ExportMedicationsPdfController {
         // HORÁRIOS
         // ----------------------------------------------------
 
-        if (
-          Array.isArray(medication.horarios) &&
-          medication.horarios.length > 0
-        ) {
+        const horarios = formatHorarios(
+          medication.horarios,
+        );
+
+        if (horarios) {
           doc
             .font("Helvetica-Bold")
             .text("Horários:");
 
           doc
             .font("Helvetica")
-            .text(
-              medication.horarios.join(" • "),
-            );
+            .text(horarios);
 
           doc.moveDown(0.5);
         }
@@ -279,7 +313,9 @@ export class ExportMedicationsPdfController {
           doc
             .font("Helvetica")
             .text(
-              formatValue(medication.observacoes),
+              formatValue(
+                medication.observacoes,
+              ),
             );
 
           doc.moveDown(0.5);
@@ -291,19 +327,31 @@ export class ExportMedicationsPdfController {
 
         doc
           .font("Helvetica-Bold")
-          .text("Responsabilidade profissional:");
+          .text(
+            "Responsabilidade profissional:",
+          );
 
         doc.font("Helvetica");
 
         doc.text(
           `Prescrito por: ${
-            medication.prescritoPor?.nome ?? "-"
+            medication.prescritoPor?.nome ??
+            "-"
           }`,
         );
 
         if (medication.prescritoPor?.cargo) {
           doc.text(
             `Cargo do prescritor: ${medication.prescritoPor.cargo}`,
+          );
+        }
+
+        if (
+          medication.prescritoPor
+            ?.registroProfissional
+        ) {
+          doc.text(
+            `Registro profissional do prescritor: ${medication.prescritoPor.registroProfissional}`,
           );
         }
 
@@ -314,6 +362,15 @@ export class ExportMedicationsPdfController {
         doc.text(
           `Cargo: ${medication.user.cargo}`,
         );
+
+        if (
+          medication.user
+            .registroProfissional
+        ) {
+          doc.text(
+            `Registro profissional: ${medication.user.registroProfissional}`,
+          );
+        }
 
         doc.text(
           `Data do registro: ${formatDate(
@@ -345,7 +402,8 @@ export class ExportMedicationsPdfController {
 
       for (
         let pageIndex = range.start;
-        pageIndex < range.start + range.count;
+        pageIndex <
+        range.start + range.count;
         pageIndex += 1
       ) {
         doc.switchToPage(pageIndex);

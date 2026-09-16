@@ -44,7 +44,7 @@ export class ListPatientEvolutionsController {
               id: true,
               nome: true,
               cargo: true,
-              assinatura: true,
+              registroProfissional: true,
             },
           },
         },

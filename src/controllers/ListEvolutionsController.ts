@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Prisma, UserRole } from "@prisma/client";
+
 import { prisma } from "../lib/prisma";
 
 function parseDateStart(value: string): Date | null {
@@ -20,6 +21,12 @@ function parseDateEndExclusive(value: string): Date | null {
   return date;
 }
 
+function isSingleQueryValue(
+  value: unknown
+): value is string {
+  return typeof value === "string";
+}
+
 export class ListEvolutionsController {
   async handle(request: Request, response: Response) {
     try {
@@ -31,20 +38,77 @@ export class ListEvolutionsController {
         endDate,
       } = request.query;
 
+      /*
+       * ============================================================
+       * VALIDAÇÃO DOS PARÂMETROS
+       * ============================================================
+       */
+
       if (
         today !== undefined &&
-        String(today).toLowerCase() !== "true" &&
-        String(today).toLowerCase() !== "false"
+        !isSingleQueryValue(today)
+      ) {
+        return response.status(400).json({
+          error: "O parâmetro 'today' é inválido.",
+        });
+      }
+
+      if (
+        today !== undefined &&
+        today.toLowerCase() !== "true" &&
+        today.toLowerCase() !== "false"
       ) {
         return response.status(400).json({
           error: "O parâmetro 'today' deve ser true ou false.",
         });
       }
 
+      if (
+        patientId !== undefined &&
+        !isSingleQueryValue(patientId)
+      ) {
+        return response.status(400).json({
+          error: "O parâmetro 'patientId' é inválido.",
+        });
+      }
+
+      if (
+        professional !== undefined &&
+        !isSingleQueryValue(professional)
+      ) {
+        return response.status(400).json({
+          error: "O parâmetro 'professional' é inválido.",
+        });
+      }
+
+      if (
+        startDate !== undefined &&
+        !isSingleQueryValue(startDate)
+      ) {
+        return response.status(400).json({
+          error: "Data inicial inválida.",
+        });
+      }
+
+      if (
+        endDate !== undefined &&
+        !isSingleQueryValue(endDate)
+      ) {
+        return response.status(400).json({
+          error: "Data final inválida.",
+        });
+      }
+
       const where: Prisma.EvolutionWhereInput = {};
 
+      /*
+       * ============================================================
+       * FILTRO POR PACIENTE
+       * ============================================================
+       */
+
       if (patientId !== undefined) {
-        const patientIdValue = String(patientId).trim();
+        const patientIdValue = patientId.trim();
 
         if (!patientIdValue) {
           return response.status(400).json({
@@ -55,10 +119,16 @@ export class ListEvolutionsController {
         where.patientId = patientIdValue;
       }
 
-      if (professional !== undefined) {
-        const profValue = String(professional).trim();
+      /*
+       * ============================================================
+       * FILTRO POR PROFISSIONAL
+       * ============================================================
+       */
 
-        if (!profValue) {
+      if (professional !== undefined) {
+        const professionalValue = professional.trim();
+
+        if (!professionalValue) {
           return response.status(400).json({
             error: "Profissional inválido.",
           });
@@ -66,16 +136,17 @@ export class ListEvolutionsController {
 
         const role = Object.values(UserRole).find(
           (item) =>
-            item.toLowerCase() === profValue.toLowerCase()
+            item.toLowerCase() ===
+            professionalValue.toLowerCase()
         );
 
         const filters: Prisma.UserWhereInput[] = [
           {
-            id: profValue,
+            id: professionalValue,
           },
           {
             nome: {
-              contains: profValue,
+              contains: professionalValue,
               mode: "insensitive",
             },
           },
@@ -94,19 +165,13 @@ export class ListEvolutionsController {
         };
       }
 
-      if (startDate || endDate) {
-        if (startDate && typeof startDate !== "string") {
-          return response.status(400).json({
-            error: "Data inicial inválida.",
-          });
-        }
+      /*
+       * ============================================================
+       * FILTRO POR PERÍODO
+       * ============================================================
+       */
 
-        if (endDate && typeof endDate !== "string") {
-          return response.status(400).json({
-            error: "Data final inválida.",
-          });
-        }
-
+      if (startDate !== undefined || endDate !== undefined) {
         const start = startDate
           ? parseDateStart(startDate)
           : null;
@@ -127,7 +192,11 @@ export class ListEvolutionsController {
           });
         }
 
-        if (start && endExclusive && start >= endExclusive) {
+        if (
+          start &&
+          endExclusive &&
+          start >= endExclusive
+        ) {
           return response.status(400).json({
             error:
               "A data inicial deve ser anterior ou igual à data final.",
@@ -143,11 +212,16 @@ export class ListEvolutionsController {
         if (endExclusive) {
           where.createdAt.lt = endExclusive;
         }
-      } else if (String(today).toLowerCase() === "true") {
+      } else if (
+        today !== undefined &&
+        today.toLowerCase() === "true"
+      ) {
         const start = new Date();
+
         start.setHours(0, 0, 0, 0);
 
         const end = new Date(start);
+
         end.setDate(end.getDate() + 1);
 
         where.createdAt = {
@@ -156,8 +230,15 @@ export class ListEvolutionsController {
         };
       }
 
+      /*
+       * ============================================================
+       * CONSULTA
+       * ============================================================
+       */
+
       const evolutions = await prisma.evolution.findMany({
         where,
+
         include: {
           patient: {
             select: {
@@ -165,20 +246,27 @@ export class ListEvolutionsController {
               nome: true,
             },
           },
+
           user: {
             select: {
               id: true,
               nome: true,
-              email: true,
               cargo: true,
-              assinatura: true,
+              registroProfissional: true,
             },
           },
         },
+
         orderBy: {
           createdAt: "desc",
         },
       });
+
+      /*
+       * ============================================================
+       * RESPOSTA
+       * ============================================================
+       */
 
       return response.status(200).json({
         total: evolutions.length,

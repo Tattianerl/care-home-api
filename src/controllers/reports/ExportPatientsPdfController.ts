@@ -1,9 +1,29 @@
 import { Request, Response } from "express";
 import PDFDocument from "pdfkit";
-
 import { prisma } from "../../lib/prisma";
-import { formatDate } from "../../utils/formatDate";
-import { formatValue } from "../../utils/formatValue";
+
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return "Não informado";
+
+  return new Intl.DateTimeFormat("pt-BR").format(date);
+}
+
+function formatDateTime(date: Date | null | undefined): string {
+  if (!date) return "Não informado";
+
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function text(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "Não informado";
+  }
+
+  return String(value);
+}
 
 export class ExportPatientsPdfController {
   async handle(request: Request, response: Response) {
@@ -15,225 +35,311 @@ export class ExportPatientsPdfController {
         orderBy: {
           nome: "asc",
         },
+        select: {
+          id: true,
+          nome: true,
+          dataNascimento: true,
+          cpf: true,
+          rg: true,
+          naturalidade: true,
+          estadoCivil: true,
+          cartaoSus: true,
+          fotoUrl: true,
+          quartoLeito: true,
+          genero: true,
+
+          responsavel: true,
+          telefone: true,
+          responsavelCpf: true,
+          responsavelGrauParentesco: true,
+          responsavelEmail: true,
+          responsavelEndereco: true,
+
+          tipoSanguineo: true,
+          planoSaude: true,
+          contatoEmergencia: true,
+          grauDependencia: true,
+
+          historicoMedico: true,
+          alergias: true,
+          diagnosticos: true,
+          restricaoAlimentar: true,
+          observacoes: true,
+
+          falecido: true,
+          dataInternacao: true,
+          dataAlta: true,
+
+          createdAt: true,
+        },
       });
 
-      const doc = new PDFDocument({
-        margin: 45,
+      if (patients.length === 0) {
+        return response.status(404).json({
+          error: "Nenhum paciente ativo encontrado para gerar o relatório.",
+        });
+      }
+
+      const document = new PDFDocument({
         size: "A4",
+        margin: 40,
         bufferPages: true,
       });
 
-      response.setHeader(
-        "Content-Type",
-        "application/pdf",
-      );
-
+      response.setHeader("Content-Type", "application/pdf");
       response.setHeader(
         "Content-Disposition",
-        'attachment; filename="carehome_residentes.pdf"',
+        'inline; filename="relatorio-pacientes.pdf"',
       );
 
-      doc.pipe(response);
+      document.pipe(response);
 
-      // ------------------------------------------------------
-      // CABEÇALHO
-      // ------------------------------------------------------
+      const pageWidth = document.page.width;
+      const left = document.page.margins.left;
+      const right = document.page.margins.right;
+      const contentWidth = pageWidth - left - right;
 
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(20)
-        .fillColor("#0F766E")
-        .text("CARE HOME", {
-          align: "center",
-        });
-
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(15)
-        .fillColor("#111827")
-        .text("Relatório de Residentes", {
-          align: "center",
-        });
-
-      doc.moveDown(0.5);
-
-      doc
-        .font("Helvetica")
-        .fontSize(9)
-        .fillColor("#6B7280")
-        .text(
-          `Emitido em: ${new Date().toLocaleString("pt-BR")}`,
-          {
+      const addTitle = () => {
+        document
+          .fontSize(18)
+          .font("Helvetica-Bold")
+          .text("Relatório de Pacientes", {
             align: "center",
-          },
-        );
+          });
 
-      doc.moveDown(1.5);
+        document.moveDown(0.4);
 
-      // ------------------------------------------------------
-      // RESUMO
-      // ------------------------------------------------------
-
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(11)
-        .fillColor("#0F766E")
-        .text(`Total de residentes ativos: ${patients.length}`);
-
-      doc.moveDown(1);
-
-      if (patients.length === 0) {
-        doc
+        document
+          .fontSize(9)
           .font("Helvetica")
-          .fontSize(10)
-          .fillColor("#6B7280")
-          .text("Nenhum residente ativo encontrado.");
+          .fillColor("#555555")
+          .text(`Emitido em: ${formatDateTime(new Date())}`, {
+            align: "center",
+          });
 
-        doc.end();
-        return;
-      }
+        document.fillColor("#000000");
+        document.moveDown(1);
+      };
 
-      // ------------------------------------------------------
-      // RESIDENTES
-      // ------------------------------------------------------
-
-      patients.forEach((patient, index) => {
-        // Verifica espaço disponível antes de iniciar um novo residente.
-        if (doc.y > 680) {
-          doc.addPage();
+      const addSectionTitle = (title: string) => {
+        if (document.y > document.page.height - 100) {
+          document.addPage();
         }
 
-        // Cabeçalho do residente
-        doc
-          .font("Helvetica-Bold")
+        document
           .fontSize(12)
-          .fillColor("#111827")
-          .text(`${index + 1}. ${patient.nome}`);
-
-        doc.moveDown(0.4);
-
-        // Linha de identificação
-        doc
-          .strokeColor("#D1D5DB")
-          .lineWidth(0.7)
-          .moveTo(45, doc.y)
-          .lineTo(550, doc.y)
-          .stroke();
-
-        doc.moveDown(0.6);
-
-        doc
-          .font("Helvetica")
-          .fontSize(9)
-          .fillColor("#374151");
-
-        doc.text(
-          `Responsável: ${formatValue(patient.responsavel)}`,
-        );
-
-        doc.text(
-          `Telefone: ${formatValue(patient.telefone)}`,
-        );
-
-        doc.text(
-          `Data de nascimento: ${formatDate(
-            patient.dataNascimento,
-            false,
-          )}`,
-        );
-
-        doc.moveDown(0.3);
-
-        doc
           .font("Helvetica-Bold")
-          .text("Informações clínicas");
+          .fillColor("#047857")
+          .text(title);
 
-        doc.font("Helvetica");
-
-        doc.text(
-          `Histórico médico: ${formatValue(
-            patient.historicoMedico,
-          )}`,
-        );
-
-        doc.text(
-          `Alergias: ${formatValue(patient.alergias)}`,
-        );
-
-        doc.text(
-          `Diagnósticos: ${formatValue(
-            patient.diagnosticos,
-          )}`,
-        );
-
-        doc.moveDown(0.8);
-
-        // Linha divisória entre residentes
-        doc
-          .strokeColor("#E5E7EB")
-          .lineWidth(0.5)
-          .moveTo(45, doc.y)
-          .lineTo(550, doc.y)
+        document
+          .moveTo(left, document.y + 3)
+          .lineTo(left + contentWidth, document.y + 3)
+          .strokeColor("#D1D5DB")
           .stroke();
 
-        doc.moveDown(0.9);
+        document.moveDown(0.5);
+
+        document.fillColor("#000000");
+      };
+
+      const addField = (label: string, value: unknown) => {
+        const startX = left;
+
+        document
+          .fontSize(9)
+          .font("Helvetica-Bold")
+          .text(`${label}: `, startX, document.y, {
+            continued: true,
+          });
+
+        document
+          .font("Helvetica")
+          .text(text(value));
+
+        document.moveDown(0.2);
+      };
+
+      addTitle();
+
+      document
+        .fontSize(10)
+        .font("Helvetica-Bold")
+        .text(`Total de pacientes: ${patients.length}`);
+
+      document.moveDown(0.8);
+
+      patients.forEach((patient, index) => {
+        if (index > 0) {
+          document.addPage();
+
+          document
+            .fontSize(18)
+            .font("Helvetica-Bold")
+            .text("Relatório de Pacientes", {
+              align: "center",
+            });
+
+          document.moveDown(0.8);
+        }
+
+        /*
+         * CABEÇALHO DO PACIENTE
+         */
+        document
+          .fontSize(14)
+          .font("Helvetica-Bold")
+          .fillColor("#111827")
+          .text(patient.nome);
+
+        document
+          .fontSize(9)
+          .font("Helvetica")
+          .fillColor("#6B7280")
+          .text(`Paciente ${index + 1} de ${patients.length}`);
+
+        document.fillColor("#000000");
+        document.moveDown(0.8);
+
+        /*
+         * DADOS PESSOAIS
+         */
+        addSectionTitle("Dados pessoais");
+
+        addField("Nome completo", patient.nome);
+        addField("Data de nascimento", formatDate(patient.dataNascimento));
+        addField("CPF", patient.cpf);
+        addField("RG", patient.rg);
+        addField("Naturalidade", patient.naturalidade);
+        addField("Estado civil", patient.estadoCivil);
+        addField("Cartão SUS", patient.cartaoSus);
+        addField("Gênero", patient.genero);
+
+        /*
+         * DADOS ADMINISTRATIVOS
+         */
+        addSectionTitle("Dados administrativos");
+
+        addField("Quarto / leito", patient.quartoLeito);
+        addField("Plano de saúde", patient.planoSaude);
+
+        addField(
+          "Data de internação",
+          formatDate(patient.dataInternacao),
+        );
+
+        addField("Data de alta", formatDate(patient.dataAlta));
+
+        addField(
+          "Situação",
+          patient.falecido ? "Falecido" : "Ativo",
+        );
+
+        /*
+         * RESPONSÁVEL
+         */
+        addSectionTitle("Responsável");
+
+        addField("Responsável", patient.responsavel);
+        addField("Telefone", patient.telefone);
+        addField("CPF do responsável", patient.responsavelCpf);
+        addField(
+          "Grau de parentesco",
+          patient.responsavelGrauParentesco,
+        );
+        addField("E-mail", patient.responsavelEmail);
+        addField(
+          "Endereço",
+          patient.responsavelEndereco,
+        );
+
+        /*
+         * SAÚDE
+         */
+        addSectionTitle("Informações de saúde");
+
+        addField("Tipo sanguíneo", patient.tipoSanguineo);
+        addField("Grau de dependência", patient.grauDependencia);
+        addField(
+          "Contato de emergência",
+          patient.contatoEmergencia,
+        );
+
+        /*
+         * INFORMAÇÕES CLÍNICAS
+         */
+        addSectionTitle("Informações clínicas");
+
+        addField(
+          "Histórico médico",
+          patient.historicoMedico,
+        );
+
+        addField(
+          "Alergias",
+          patient.alergias,
+        );
+
+        addField(
+          "Diagnósticos",
+          patient.diagnosticos,
+        );
+
+        addField(
+          "Restrição alimentar",
+          patient.restricaoAlimentar,
+        );
+
+        addField(
+          "Observações",
+          patient.observacoes,
+        );
+
+        /*
+         * IDENTIFICAÇÃO TÉCNICA
+         */
+        addSectionTitle("Registro do sistema");
+
+        addField("ID do paciente", patient.id);
+        addField(
+          "Cadastro realizado em",
+          formatDateTime(patient.createdAt),
+        );
       });
 
-      // ------------------------------------------------------
-      // RODAPÉ
-      // ------------------------------------------------------
+      /*
+       * RODAPÉ EM TODAS AS PÁGINAS
+       */
+      const pageCount = document.bufferedPageRange().count;
 
-      const range = doc.bufferedPageRange();
+      for (let i = 0; i < pageCount; i++) {
+        document.switchToPage(i);
 
-      for (
-        let pageIndex = range.start;
-        pageIndex < range.start + range.count;
-        pageIndex += 1
-      ) {
-        doc.switchToPage(pageIndex);
-
-        doc
-          .strokeColor("#D1D5DB")
-          .lineWidth(0.5)
-          .moveTo(45, 770)
-          .lineTo(550, 770)
-          .stroke();
-
-        doc
-          .font("Helvetica")
+        document
           .fontSize(8)
+          .font("Helvetica")
           .fillColor("#6B7280")
           .text(
-            "Care Home - Sistema de Gestão para Casa de Repouso",
-            45,
-            778,
+            `CareHome • Relatório de Pacientes • Página ${i + 1} de ${pageCount}`,
+            left,
+            document.page.height - 30,
             {
-              width: 505,
+              width: contentWidth,
               align: "center",
             },
           );
-
-        doc.text(
-          `Página ${pageIndex + 1} de ${range.count}`,
-          45,
-          790,
-          {
-            width: 505,
-            align: "center",
-          },
-        );
       }
 
-      doc.end();
+      document.end();
     } catch (error) {
       console.error(
-        "[ExportPatientsPdfController] Erro ao gerar PDF:",
+        "Erro ao gerar relatório PDF de pacientes:",
         error,
       );
 
       if (!response.headersSent) {
         return response.status(500).json({
-          error: "Falha ao gerar relatório de residentes em PDF.",
+          error: "Erro interno ao gerar o relatório PDF de pacientes.",
         });
       }
 
