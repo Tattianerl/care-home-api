@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
 
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
@@ -65,11 +65,15 @@ export class UpdatePatientController {
 
       /*
        * ============================================================
-       * CAMPOS ADMINISTRATIVOS / CADASTRAIS
+       * CAMPOS PERMITIDOS POR CARGO
        * ============================================================
+       *
+       * Princípio do menor privilégio:
+       * cada cargo pode alterar somente os campos necessários
+       * para sua função.
        */
 
-      const commonAdministrativeFields = [
+      const receptionFields = [
         "nome",
         "dataNascimento",
         "cpf",
@@ -91,72 +95,45 @@ export class UpdatePatientController {
         "observacoes",
       ];
 
-      /*
-       * ============================================================
-       * CAMPOS SOCIAIS / ASSISTENCIAIS
-       * ============================================================
-       */
-
-      const socialFields = [
+      const socialAssistantFields = [
+        ...receptionFields,
         "grauDependencia",
         "restricaoAlimentar",
       ];
 
-      const nursingFields = [
+      const nurseFields = [
+        ...receptionFields,
         "tipoSanguineo",
         "grauDependencia",
         "restricaoAlimentar",
         "alergias",
+      ];
+
+      const doctorFields = [
+        "tipoSanguineo",
+        "historicoMedico",
+        "alergias",
+        "diagnosticos",
         "observacoes",
       ];
 
-      /*
-       * ============================================================
-       * STATUS INSTITUCIONAL
-       *
-       * Internação, alta e óbito não são tratados como simples
-       * alterações cadastrais.
-       * ============================================================
-       */
-
-      const institutionalStatusFields = [
-        "dataInternacao",
-        "dataAlta",
-        "falecido",
-      ];
-
-      let allowedFields: string[] = [];
+      let allowedFields: string[];
 
       switch (userRole) {
-        case UserRole.COORDENADOR:
-          allowedFields = [
-            ...commonAdministrativeFields,
-            ...socialFields,
-            ...nursingFields,
-            "historicoMedico",
-            "diagnosticos",
-            ...institutionalStatusFields,
-          ];
+        case UserRole.RECEPCAO:
+          allowedFields = receptionFields;
           break;
 
         case UserRole.ASSISTENTE_SOCIAL:
-          allowedFields = [
-            ...commonAdministrativeFields,
-            ...socialFields,
-          ];
+          allowedFields = socialAssistantFields;
           break;
 
         case UserRole.ENFERMEIRO:
-          allowedFields = [
-            ...commonAdministrativeFields,
-            ...nursingFields,
-          ];
+          allowedFields = nurseFields;
           break;
 
-        case UserRole.RECEPCAO:
-          allowedFields = [
-            ...commonAdministrativeFields,
-          ];
+        case UserRole.MEDICO:
+          allowedFields = doctorFields;
           break;
 
         default:
@@ -165,6 +142,12 @@ export class UpdatePatientController {
               "Seu cargo não possui permissão para atualizar pacientes.",
           });
       }
+
+      /*
+       * ============================================================
+       * VALIDAÇÃO DOS CAMPOS SOLICITADOS
+       * ============================================================
+       */
 
       const requestedFields = Object.keys(body);
 
@@ -206,14 +189,11 @@ export class UpdatePatientController {
         diagnosticos,
         restricaoAlimentar,
         observacoes,
-        dataInternacao,
-        dataAlta,
-        falecido,
       } = body;
 
       /*
        * ============================================================
-       * VALIDAÇÕES BÁSICAS
+       * VALIDAÇÕES
        * ============================================================
        */
 
@@ -235,38 +215,9 @@ export class UpdatePatientController {
         });
       }
 
-      if (
-        dataInternacao !== undefined &&
-        dataInternacao !== null &&
-        !isValidDate(dataInternacao)
-      ) {
-        return response.status(400).json({
-          error: "Data de internação inválida.",
-        });
-      }
-
-      if (
-        dataAlta !== undefined &&
-        dataAlta !== null &&
-        !isValidDate(dataAlta)
-      ) {
-        return response.status(400).json({
-          error: "Data de alta inválida.",
-        });
-      }
-
-      if (
-        falecido !== undefined &&
-        typeof falecido !== "boolean"
-      ) {
-        return response.status(400).json({
-          error: "O campo falecido deve ser verdadeiro ou falso.",
-        });
-      }
-
       /*
        * ============================================================
-       * CONVERSÃO DE DATAS
+       * CONVERSÃO DE DATA
        * ============================================================
        */
 
@@ -275,66 +226,13 @@ export class UpdatePatientController {
           ? new Date(dataNascimento)
           : undefined;
 
-      const parsedDataInternacao =
-        dataInternacao !== undefined && dataInternacao !== null
-          ? new Date(dataInternacao)
-          : dataInternacao === null
-            ? null
-            : undefined;
-
-      const parsedDataAlta =
-        dataAlta !== undefined && dataAlta !== null
-          ? new Date(dataAlta)
-          : dataAlta === null
-            ? null
-            : undefined;
-
-      const finalDataInternacao =
-        parsedDataInternacao !== undefined
-          ? parsedDataInternacao
-          : patientExists.dataInternacao;
-
-      const finalDataAlta =
-        parsedDataAlta !== undefined
-          ? parsedDataAlta
-          : patientExists.dataAlta;
-
-      if (
-        finalDataInternacao &&
-        finalDataAlta &&
-        finalDataAlta < finalDataInternacao
-      ) {
-        return response.status(400).json({
-          error:
-            "A data de alta não pode ser anterior à data de internação.",
-        });
-      }
-
-      /*
-       * ============================================================
-       * REGRA DE CONSISTÊNCIA DO ÓBITO
-       * ============================================================
-       *
-       * Quando o residente é marcado como falecido, o cadastro
-       * permanece preservado. Não apagamos dados do paciente.
-       */
-
-      if (
-        falecido === true &&
-        patientExists.ativo === true
-      ) {
-        // A situação de óbito não apaga o cadastro.
-        // O campo ativo não é alterado automaticamente aqui,
-        // pois são conceitos distintos no Prisma.
-      }
-
       /*
        * ============================================================
        * MONTAGEM DO UPDATE
        * ============================================================
        */
 
-      const data: Record<string, unknown> = {};
+      const data: Prisma.PatientUpdateInput = {};
 
       if (nome !== undefined) {
         data.nome = nome.trim();
@@ -344,49 +242,68 @@ export class UpdatePatientController {
         data.dataNascimento = parsedDataNascimento;
       }
 
-      const optionalFields: Array<[string, unknown]> = [
+      /*
+       * Strings opcionais
+       */
+
+      const optionalStringFields: Array<[string, unknown]> = [
         ["cpf", cpf],
         ["rg", rg],
         ["naturalidade", naturalidade],
-        ["estadoCivil", estadoCivil],
         ["cartaoSus", cartaoSus],
         ["fotoUrl", fotoUrl],
         ["quartoLeito", quartoLeito],
-        ["genero", genero],
         ["responsavel", responsavel],
         ["telefone", telefone],
         ["responsavelCpf", responsavelCpf],
         ["responsavelGrauParentesco", responsavelGrauParentesco],
         ["responsavelEmail", responsavelEmail],
         ["responsavelEndereco", responsavelEndereco],
-        ["tipoSanguineo", tipoSanguineo],
         ["planoSaude", planoSaude],
         ["contatoEmergencia", contatoEmergencia],
-        ["grauDependencia", grauDependencia],
         ["historicoMedico", historicoMedico],
         ["alergias", alergias],
         ["diagnosticos", diagnosticos],
-        ["restricaoAlimentar", restricaoAlimentar],
         ["observacoes", observacoes],
       ];
 
-      for (const [field, value] of optionalFields) {
+      for (const [field, value] of optionalStringFields) {
         if (value !== undefined) {
-          data[field] = normalizeOptionalString(value);
+          data[field as keyof Prisma.PatientUpdateInput] =
+            normalizeOptionalString(value) as never;
         }
       }
 
-      if (parsedDataInternacao !== undefined) {
-        data.dataInternacao = parsedDataInternacao;
+      /*
+       * Enums
+       */
+
+      if (estadoCivil !== undefined) {
+        data.estadoCivil = estadoCivil;
       }
 
-      if (parsedDataAlta !== undefined) {
-        data.dataAlta = parsedDataAlta;
+      if (genero !== undefined) {
+        data.genero = genero;
       }
 
-      if (falecido !== undefined) {
-        data.falecido = falecido;
+      if (tipoSanguineo !== undefined) {
+        data.tipoSanguineo = tipoSanguineo;
       }
+
+      if (grauDependencia !== undefined) {
+        data.grauDependencia = grauDependencia;
+      }
+
+      if (restricaoAlimentar !== undefined) {
+        data.restricaoAlimentar =
+          normalizeOptionalString(restricaoAlimentar);
+      }
+
+      /*
+       * ============================================================
+       * NENHUM CAMPO
+       * ============================================================
+       */
 
       if (Object.keys(data).length === 0) {
         return response.status(400).json({
@@ -397,7 +314,7 @@ export class UpdatePatientController {
 
       /*
        * ============================================================
-       * IDENTIFICA CAMPOS REALMENTE ALTERADOS
+       * IDENTIFICA ALTERAÇÕES
        * ============================================================
        */
 
@@ -405,7 +322,8 @@ export class UpdatePatientController {
         const oldValue =
           patientExists[field as keyof typeof patientExists];
 
-        const newValue = data[field];
+        const newValue =
+          data[field as keyof Prisma.PatientUpdateInput];
 
         if (oldValue instanceof Date && newValue instanceof Date) {
           return oldValue.getTime() !== newValue.getTime();
@@ -457,3 +375,4 @@ export class UpdatePatientController {
     }
   }
 }
+

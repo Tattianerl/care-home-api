@@ -31,6 +31,8 @@ import { ListPatientsController } from "../controllers/ListPatientsController";
 import { GetPatientController } from "../controllers/GetPatientController";
 import { UpdatePatientController } from "../controllers/UpdatePatientController";
 import { DeletePatientController } from "../controllers/DeletePatientController";
+import { UpdatePatientStatusController } from "../controllers/UpdatePatientStatusController";
+
 
 // ======================================================
 // EVOLUTIONS
@@ -351,6 +353,8 @@ const clinicalReadRoles = [
   UserRole.FONOAUDIOLOGO,
 ];
 
+const updatePatientStatusController = new UpdatePatientStatusController();
+
 // ======================================================
 // AUTH / USUÁRIOS
 // ======================================================
@@ -437,7 +441,7 @@ authRoutes.put(
   "/patients/:id",
   authMiddleware,
   roleMiddleware(
-    UserRole.COORDENADOR,
+    UserRole.MEDICO,
     UserRole.ASSISTENTE_SOCIAL,
     UserRole.ENFERMEIRO,
     UserRole.RECEPCAO
@@ -452,6 +456,13 @@ authRoutes.delete(
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
   deletePatientController.handle
+);
+
+authRoutes.patch(
+  "/patients/:id/status",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR),
+  updatePatientStatusController.handle
 );
 
 // ======================================================
@@ -730,8 +741,7 @@ authRoutes.get(
 // Upload legado
 // ------------------------------------------------------
 //
-// NÃO remover ainda.
-// Vamos verificar o frontend antes de eliminar essa rota.
+
 authRoutes.post(
   "/upload",
   authMiddleware,
@@ -762,6 +772,7 @@ authRoutes.post(
   roleMiddleware(
     UserRole.COORDENADOR,
     UserRole.ASSISTENTE_SOCIAL,
+    UserRole.MEDICO,
     UserRole.ENFERMEIRO,
     UserRole.RECEPCAO
   ),
