@@ -13,6 +13,7 @@ export class GetTodayNutritionalAssessmentsController {
       const assessments =
         await prisma.nutritionalAssessment.findMany({
           where: {
+            deletedAt: null,
             createdAt: {
               gte: startOfDay,
               lt: startOfNextDay,

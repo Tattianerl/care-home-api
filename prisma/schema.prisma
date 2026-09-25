@@ -44,6 +44,8 @@ model User {
   prescriptions Medication[] @relation("MedicationPrescription")
 
   deletedDocuments PatientDocument[] @relation("DeletedDocuments")
+
+  deletedNutritionalAssessments NutritionalAssessment[] @relation("DeletedNutritionalAssessments")
 }
 
 model Patient {
@@ -220,11 +222,16 @@ model NutritionalAssessment {
   observacoes String?
   createdAt   DateTime @default(now())
 
+  deletedAt DateTime? 
+  deletedByUserId String?
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
   userId String
   user   User   @relation(fields: [userId], references: [id])
+
+  deletedByUser User? @relation("DeletedNutritionalAssessments", fields: [deletedByUserId], references: [id] )
 }
 
 model AuditLog {

@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import { createAuditLog } from "../services/audit/createAuditLog";
 
-
 export class UpdateNutritionalAssessmentController {
   async handle(request: Request, response: Response) {
     try {
@@ -35,6 +34,13 @@ export class UpdateNutritionalAssessmentController {
         });
       }
 
+      if (assessmentExists.deletedAt) {
+        return response.status(409).json({
+          error:
+            "Não é possível editar uma avaliação nutricional excluída.",
+        });
+      }
+
       const dataToUpdate: {
         peso?: number;
         altura?: number;
@@ -44,11 +50,16 @@ export class UpdateNutritionalAssessmentController {
 
       if (observacoes !== undefined) {
         dataToUpdate.observacoes =
-          observacoes === null ? null : String(observacoes).trim();
+          observacoes === null
+            ? null
+            : String(observacoes).trim();
       }
 
-      const pesoInformado = peso !== undefined && peso !== null;
-      const alturaInformada = altura !== undefined && altura !== null;
+      const pesoInformado =
+        peso !== undefined && peso !== null;
+
+      const alturaInformada =
+        altura !== undefined && altura !== null;
 
       if (pesoInformado || alturaInformada) {
         const newPeso = pesoInformado
@@ -100,7 +111,9 @@ export class UpdateNutritionalAssessmentController {
 
       const updatedAssessment =
         await prisma.nutritionalAssessment.update({
-          where: { id: assessmentId },
+          where: {
+            id: assessmentId,
+          },
           data: dataToUpdate,
           include: {
             user: {
@@ -115,9 +128,11 @@ export class UpdateNutritionalAssessmentController {
       await createAuditLog({
         userId: request.user!.id,
         acao: "UPDATE",
-        entidade: "NutritionalAssessment",
+        entidade: "NUTRITIONAL_ASSESSMENT",
         entidadeId: assessmentId,
-        descricao: `Avaliação nutricional do residente "${assessmentExists.patient.nome}" atualizada.`,
+        descricao:
+          `Avaliação nutricional do residente ` +
+          `"${assessmentExists.patient.nome}" atualizada.`,
       });
 
       return response.json(updatedAssessment);

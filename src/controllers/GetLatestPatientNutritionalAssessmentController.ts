@@ -31,6 +31,7 @@ export class GetLatestPatientNutritionalAssessmentController {
         await prisma.nutritionalAssessment.findFirst({
           where: {
             patientId: patient.id,
+            deletedAt: null,
           },
           include: {
             user: {
@@ -45,9 +46,7 @@ export class GetLatestPatientNutritionalAssessmentController {
           },
         });
 
-      return response.status(200).json(
-        latestAssessment
-      );
+      return response.status(200).json(latestAssessment);
     } catch (error) {
       console.error(
         "Erro ao buscar última avaliação nutricional:",

@@ -33,7 +33,6 @@ import { UpdatePatientController } from "../controllers/UpdatePatientController"
 import { DeletePatientController } from "../controllers/DeletePatientController";
 import { UpdatePatientStatusController } from "../controllers/UpdatePatientStatusController";
 
-
 // ======================================================
 // EVOLUTIONS
 // ======================================================
@@ -108,6 +107,7 @@ import { UpdateNutritionalAssessmentController } from "../controllers/UpdateNutr
 import { ListPatientNutritionalAssessmentsController } from "../controllers/ListPatientNutritionalAssessmentsController";
 import { GetLatestPatientNutritionalAssessmentController } from "../controllers/GetLatestPatientNutritionalAssessmentController";
 import { GetTodayNutritionalAssessmentsController } from "../controllers/GetTodayNutritionalAssessmentsController";
+import { DeleteNutritionalAssessmentController } from "../controllers/DeleteNutritionalAssessmentController";
 
 // ======================================================
 // TIMELINE / PATIENT REPORT
@@ -184,7 +184,8 @@ const uploadController = new UploadController();
 const uploadPatientDocumentController = new UploadPatientDocumentController();
 const listPatientDocumentsController = new ListPatientDocumentsController();
 const listAllDocumentsController = new ListAllDocumentsController();
-const downloadPatientDocumentController = new DownloadPatientDocumentController();
+const downloadPatientDocumentController =
+  new DownloadPatientDocumentController();
 const deletePatientDocumentController = new DeletePatientDocumentController();
 
 const createVitalSignController = new CreateVitalSignController();
@@ -193,15 +194,18 @@ const listPatientVitalSignsController = new ListPatientVitalSignsController();
 const listAllVitalSignsController = new ListAllVitalSignsController();
 const getLatestVitalSignController = new GetLatestVitalSignController();
 
-const createPatientMedicationController = new CreatePatientMedicationController();
+const createPatientMedicationController =
+  new CreatePatientMedicationController();
 const listPatientMedicationsController = new ListPatientMedicationsController();
 const getMedicationController = new GetMedicationController();
 const updateMedicationController = new UpdateMedicationController();
 
 const createAppointmentController = new CreateAppointmentController();
 const listAppointmentsController = new ListAppointmentsController();
-const listPatientAppointmentsController = new ListPatientAppointmentsController();
-const updateAppointmentStatusController = new UpdateAppointmentStatusController();
+const listPatientAppointmentsController =
+  new ListPatientAppointmentsController();
+const updateAppointmentStatusController =
+  new UpdateAppointmentStatusController();
 const listTodayAppointmentsController = new ListTodayAppointmentsController();
 const getAppointmentController = new GetAppointmentController();
 const updateAppointmentController = new UpdateAppointmentController();
@@ -221,6 +225,8 @@ const getLatestPatientNutritionalAssessmentController =
 
 const getTodayNutritionalAssessmentsController =
   new GetTodayNutritionalAssessmentsController();
+const deleteNutritionalAssessmentController =
+  new DeleteNutritionalAssessmentController();
 
 const patientTimelineController = new PatientTimelineController();
 const generatePatientReportController = new GeneratePatientReportController();
@@ -365,47 +371,43 @@ authRoutes.post(
   "/register",
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
-  registerController.handle
+  registerController.handle,
 );
 
 authRoutes.patch(
   "/users/admin-reset-password",
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
-  resetPasswordByAdminController.handle
+  resetPasswordByAdminController.handle,
 );
 
 authRoutes.get(
   "/users",
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
-  listUsersController.handle
+  listUsersController.handle,
 );
 
 authRoutes.patch(
   "/users/:id/toggle-status",
   authMiddleware,
   roleMiddleware(UserRole.ADMIN),
-  toggleUserStatusController.handle
+  toggleUserStatusController.handle,
 );
 
 authRoutes.put(
   "/users/update-password",
   authMiddleware,
-  updatePasswordController.handle
+  updatePasswordController.handle,
 );
 
-authRoutes.get(
-  "/me",
-  authMiddleware,
-  getProfileController.handle
-);
+authRoutes.get("/me", authMiddleware, getProfileController.handle);
 
 authRoutes.post(
   "/users/signature",
   authMiddleware,
   upload.single("file"),
-  uploadSignatureController.handle
+  uploadSignatureController.handle,
 );
 
 // ======================================================
@@ -418,23 +420,23 @@ authRoutes.post(
   roleMiddleware(
     UserRole.COORDENADOR,
     UserRole.ASSISTENTE_SOCIAL,
-    UserRole.RECEPCAO
+    UserRole.RECEPCAO,
   ),
-  createPatientController.handle
+  createPatientController.handle,
 );
 
 authRoutes.get(
   "/patients",
   authMiddleware,
   roleMiddleware(...patientReadRoles),
-  listPatientsController.handle
+  listPatientsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id",
   authMiddleware,
   roleMiddleware(...patientReadRoles),
-  getPatientController.handle
+  getPatientController.handle,
 );
 
 authRoutes.put(
@@ -444,9 +446,9 @@ authRoutes.put(
     UserRole.MEDICO,
     UserRole.ASSISTENTE_SOCIAL,
     UserRole.ENFERMEIRO,
-    UserRole.RECEPCAO
+    UserRole.RECEPCAO,
   ),
-  updatePatientController.handle
+  updatePatientController.handle,
 );
 
 // Exclusão é apenas desativação institucional.
@@ -455,14 +457,14 @@ authRoutes.delete(
   "/patients/:id",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  deletePatientController.handle
+  deletePatientController.handle,
 );
 
 authRoutes.patch(
   "/patients/:id/status",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  updatePatientStatusController.handle
+  updatePatientStatusController.handle,
 );
 
 // ======================================================
@@ -473,28 +475,28 @@ authRoutes.post(
   "/evolutions",
   authMiddleware,
   roleMiddleware(...evolutionWriteRoles),
-  createEvolutionController.handle
+  createEvolutionController.handle,
 );
 
 authRoutes.get(
   "/evolutions",
   authMiddleware,
   roleMiddleware(...evolutionReadRoles),
-  listEvolutionsController.handle
+  listEvolutionsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/evolutions",
   authMiddleware,
   roleMiddleware(...evolutionReadRoles),
-  listPatientEvolutionsController.handle
+  listPatientEvolutionsController.handle,
 );
 
 authRoutes.put(
   "/evolutions/:id",
   authMiddleware,
   roleMiddleware(...evolutionWriteRoles),
-  updateEvolutionController.handle
+  updateEvolutionController.handle,
 );
 
 // DELETE de evolução NÃO exposto.
@@ -511,19 +513,15 @@ authRoutes.put(
 authRoutes.get(
   "/reports/patients",
   authMiddleware,
-  roleMiddleware(
-    UserRole.COORDENADOR,
-    UserRole.MEDICO,
-    UserRole.ENFERMEIRO
-  ),
-  exportPatientsController.handle
+  roleMiddleware(UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  exportPatientsController.handle,
 );
 
 authRoutes.get(
   "/reports/patients/pdf",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportPatientsPdfController.handle
+  exportPatientsPdfController.handle,
 );
 
 // ------------------------------------------------------
@@ -542,16 +540,16 @@ authRoutes.get(
     UserRole.PSICOLOGO,
     UserRole.ASSISTENTE_SOCIAL,
     UserRole.TERAPEUTA_OCUPACIONAL,
-    UserRole.FONOAUDIOLOGO
+    UserRole.FONOAUDIOLOGO,
   ),
-  exportEvolutionController.handle
+  exportEvolutionController.handle,
 );
 
 authRoutes.get(
   "/reports/evolutions/pdf",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportEvolutionsPdfController.handle
+  exportEvolutionsPdfController.handle,
 );
 
 // ------------------------------------------------------
@@ -561,19 +559,15 @@ authRoutes.get(
 authRoutes.get(
   "/reports/medications",
   authMiddleware,
-  roleMiddleware(
-    UserRole.COORDENADOR,
-    UserRole.MEDICO,
-    UserRole.ENFERMEIRO
-  ),
-  exportMedicationController.handle
+  roleMiddleware(UserRole.COORDENADOR, UserRole.MEDICO, UserRole.ENFERMEIRO),
+  exportMedicationController.handle,
 );
 
 authRoutes.get(
   "/reports/medications/pdf",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportMedicationsPdfController.handle
+  exportMedicationsPdfController.handle,
 );
 
 // ------------------------------------------------------
@@ -587,16 +581,16 @@ authRoutes.get(
     UserRole.COORDENADOR,
     UserRole.MEDICO,
     UserRole.ENFERMEIRO,
-    UserRole.TECNICO_ENFERMAGEM
+    UserRole.TECNICO_ENFERMAGEM,
   ),
-  exportVitalSignsController.handle
+  exportVitalSignsController.handle,
 );
 
 authRoutes.get(
   "/reports/vital-signs/pdf",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportVitalSignsPdfController.handle
+  exportVitalSignsPdfController.handle,
 );
 
 // ------------------------------------------------------
@@ -607,14 +601,14 @@ authRoutes.get(
   "/reports/documents",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportDocumentsController.handle
+  exportDocumentsController.handle,
 );
 
 authRoutes.get(
   "/reports/documents/pdf",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  exportDocumentsPdfController.handle
+  exportDocumentsPdfController.handle,
 );
 
 // ------------------------------------------------------
@@ -624,42 +618,30 @@ authRoutes.get(
 authRoutes.get(
   "/reports/audit",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  exportAuditLogsController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  exportAuditLogsController.handle,
 );
 
 authRoutes.get(
   "/reports/audit/pdf",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  exportAuditPdfController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  exportAuditPdfController.handle,
 );
 
 // Alias legado — manter temporariamente até a conferência do frontend.
 authRoutes.get(
   "/export/audit-logs",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  exportAuditLogsController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  exportAuditLogsController.handle,
 );
 
 authRoutes.get(
   "/audit-logs",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  listAuditLogsController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  listAuditLogsController.handle,
 );
 
 // ======================================================
@@ -673,14 +655,14 @@ authRoutes.get(
   "/dashboard",
   authMiddleware,
   roleMiddleware(...patientReadRoles),
-  dashboardController.handle
+  dashboardController.handle,
 );
 
 authRoutes.get(
   "/dashboard/patients-by-month",
   authMiddleware,
   roleMiddleware(...patientReadRoles),
-  patientsByMonthController.handle
+  patientsByMonthController.handle,
 );
 
 // Indicador relacionado a evoluções é clínico.
@@ -689,48 +671,42 @@ authRoutes.get(
   "/dashboard/evolutions-by-month",
   authMiddleware,
   roleMiddleware(...clinicalReadRoles),
-  evolutionsByMonthController.handle
+  evolutionsByMonthController.handle,
 );
 
 authRoutes.get(
   "/dashboard/appointments-by-month",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  appointmentsByMonthController.handle
+  appointmentsByMonthController.handle,
 );
 
 authRoutes.get(
   "/dashboard/documents-by-month",
   authMiddleware,
   roleMiddleware(...documentReadRoles),
-  documentsByMonthController.handle
+  documentsByMonthController.handle,
 );
 
 authRoutes.get(
   "/dashboard/today",
   authMiddleware,
   roleMiddleware(...patientReadRoles),
-  dashboardTodayController.handle
+  dashboardTodayController.handle,
 );
 
 authRoutes.get(
   "/dashboard/audit-summary",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  auditSummaryController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  auditSummaryController.handle,
 );
 
 authRoutes.get(
   "/dashboard/top-users",
   authMiddleware,
-  roleMiddleware(
-    UserRole.ADMIN,
-    UserRole.COORDENADOR
-  ),
-  topUsersController.handle
+  roleMiddleware(UserRole.ADMIN, UserRole.COORDENADOR),
+  topUsersController.handle,
 );
 
 // ======================================================
@@ -756,10 +732,10 @@ authRoutes.post(
     UserRole.TECNICO_ENFERMAGEM,
     UserRole.TERAPEUTA_OCUPACIONAL,
     UserRole.FONOAUDIOLOGO,
-    UserRole.RECEPCAO
+    UserRole.RECEPCAO,
   ),
   upload.single("file"),
-  uploadController.handle
+  uploadController.handle,
 );
 
 // ------------------------------------------------------
@@ -774,10 +750,10 @@ authRoutes.post(
     UserRole.ASSISTENTE_SOCIAL,
     UserRole.MEDICO,
     UserRole.ENFERMEIRO,
-    UserRole.RECEPCAO
+    UserRole.RECEPCAO,
   ),
   upload.single("file"),
-  uploadPatientDocumentController.handle
+  uploadPatientDocumentController.handle,
 );
 
 // ------------------------------------------------------
@@ -788,21 +764,21 @@ authRoutes.get(
   "/documents",
   authMiddleware,
   roleMiddleware(...documentReadRoles),
-  listAllDocumentsController.handle
+  listAllDocumentsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/documents",
   authMiddleware,
   roleMiddleware(...documentReadRoles),
-  listPatientDocumentsController.handle
+  listPatientDocumentsController.handle,
 );
 
 authRoutes.get(
   "/documents/:id/download",
   authMiddleware,
   roleMiddleware(...documentReadRoles),
-  downloadPatientDocumentController.handle
+  downloadPatientDocumentController.handle,
 );
 
 // Exclusão lógica de documento.
@@ -811,7 +787,7 @@ authRoutes.delete(
   "/documents/:id",
   authMiddleware,
   roleMiddleware(UserRole.COORDENADOR),
-  deletePatientDocumentController.handle
+  deletePatientDocumentController.handle,
 );
 
 // ======================================================
@@ -824,9 +800,9 @@ authRoutes.post(
   roleMiddleware(
     UserRole.MEDICO,
     UserRole.ENFERMEIRO,
-    UserRole.TECNICO_ENFERMAGEM
+    UserRole.TECNICO_ENFERMAGEM,
   ),
-  createVitalSignController.handle
+  createVitalSignController.handle,
 );
 
 authRoutes.put(
@@ -835,30 +811,30 @@ authRoutes.put(
   roleMiddleware(
     UserRole.MEDICO,
     UserRole.ENFERMEIRO,
-    UserRole.TECNICO_ENFERMAGEM
+    UserRole.TECNICO_ENFERMAGEM,
   ),
-  updateVitalSignController.handle
+  updateVitalSignController.handle,
 );
 
 authRoutes.get(
   "/vital-signs",
   authMiddleware,
   roleMiddleware(...vitalSignsReadRoles),
-  listAllVitalSignsController.handle
+  listAllVitalSignsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/vital-signs",
   authMiddleware,
   roleMiddleware(...vitalSignsReadRoles),
-  listPatientVitalSignsController.handle
+  listPatientVitalSignsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/vital-signs/latest",
   authMiddleware,
   roleMiddleware(...vitalSignsReadRoles),
-  getLatestVitalSignController.handle
+  getLatestVitalSignController.handle,
 );
 
 // DELETE de sinais vitais NÃO exposto.
@@ -871,35 +847,29 @@ authRoutes.get(
 authRoutes.post(
   "/patients/:id/medications",
   authMiddleware,
-  roleMiddleware(
-    UserRole.MEDICO,
-    UserRole.ENFERMEIRO
-  ),
-  createPatientMedicationController.handle
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO),
+  createPatientMedicationController.handle,
 );
 
 authRoutes.put(
   "/medications/:id",
   authMiddleware,
-  roleMiddleware(
-    UserRole.MEDICO,
-    UserRole.ENFERMEIRO
-  ),
-  updateMedicationController.handle
+  roleMiddleware(UserRole.MEDICO, UserRole.ENFERMEIRO),
+  updateMedicationController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/medications",
   authMiddleware,
   roleMiddleware(...medicationReadRoles),
-  listPatientMedicationsController.handle
+  listPatientMedicationsController.handle,
 );
 
 authRoutes.get(
   "/medications/:id",
   authMiddleware,
   roleMiddleware(...medicationReadRoles),
-  getMedicationController.handle
+  getMedicationController.handle,
 );
 
 // ======================================================
@@ -910,14 +880,14 @@ authRoutes.get(
   "/patients/:id/timeline",
   authMiddleware,
   roleMiddleware(...clinicalReadRoles),
-  patientTimelineController.handle
+  patientTimelineController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/report",
   authMiddleware,
   roleMiddleware(...clinicalReadRoles),
-  generatePatientReportController.handle
+  generatePatientReportController.handle,
 );
 
 // ======================================================
@@ -928,56 +898,56 @@ authRoutes.post(
   "/appointments",
   authMiddleware,
   roleMiddleware(...appointmentWriteRoles),
-  createAppointmentController.handle
+  createAppointmentController.handle,
 );
 
 authRoutes.put(
   "/appointments/:id",
   authMiddleware,
   roleMiddleware(...appointmentWriteRoles),
-  updateAppointmentController.handle
+  updateAppointmentController.handle,
 );
 
 authRoutes.patch(
   "/appointments/:id/status",
   authMiddleware,
   roleMiddleware(...appointmentWriteRoles),
-  updateAppointmentStatusController.handle
+  updateAppointmentStatusController.handle,
 );
 
 authRoutes.get(
   "/appointments",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  listAppointmentsController.handle
+  listAppointmentsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/appointments",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  listPatientAppointmentsController.handle
+  listPatientAppointmentsController.handle,
 );
 
 authRoutes.get(
   "/appointments/upcoming",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  upcomingAppointmentsController.handle
+  upcomingAppointmentsController.handle,
 );
 
 authRoutes.get(
   "/appointments/today",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  listTodayAppointmentsController.handle
+  listTodayAppointmentsController.handle,
 );
 
 authRoutes.get(
   "/appointments/:id",
   authMiddleware,
   roleMiddleware(...appointmentReadRoles),
-  getAppointmentController.handle
+  getAppointmentController.handle,
 );
 
 // ======================================================
@@ -987,49 +957,47 @@ authRoutes.get(
 authRoutes.post(
   "/nutritional-assessments",
   authMiddleware,
-  roleMiddleware(
-    UserRole.NUTRICIONISTA,
-    UserRole.MEDICO
-  ),
-  createNutritionalAssessmentController.handle
+  roleMiddleware(UserRole.NUTRICIONISTA),
+  createNutritionalAssessmentController.handle,
 );
 
 authRoutes.put(
   "/nutritional-assessments/:id",
   authMiddleware,
-  roleMiddleware(
-    UserRole.NUTRICIONISTA,
-    UserRole.MEDICO
-  ),
-  updateNutritionalAssessmentController.handle
+  roleMiddleware(UserRole.NUTRICIONISTA),
+  updateNutritionalAssessmentController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/nutritional-assessments",
   authMiddleware,
   roleMiddleware(...nutritionReadRoles),
-  listPatientNutritionalAssessmentsController.handle
+  listPatientNutritionalAssessmentsController.handle,
 );
 
 authRoutes.get(
   "/patients/:id/nutritional-assessments/latest",
   authMiddleware,
   roleMiddleware(...nutritionReadRoles),
-  getLatestPatientNutritionalAssessmentController.handle
+  getLatestPatientNutritionalAssessmentController.handle,
 );
 
 authRoutes.get(
   "/nutritional-assessments/today",
   authMiddleware,
   roleMiddleware(...nutritionReadRoles),
-  getTodayNutritionalAssessmentsController.handle
+  getTodayNutritionalAssessmentsController.handle,
 );
 
-// DELETE de avaliação nutricional NÃO exposto.
+authRoutes.delete(
+  "/nutritional-assessments/:id",
+  authMiddleware,
+  roleMiddleware(UserRole.COORDENADOR),
+  deleteNutritionalAssessmentController.handle
+);
 
 // ======================================================
 // EXPORT
 // ======================================================
 
 export { authRoutes };
-

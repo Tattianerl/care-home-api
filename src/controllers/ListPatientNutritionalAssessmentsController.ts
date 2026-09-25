@@ -31,6 +31,7 @@ export class ListPatientNutritionalAssessmentsController {
         await prisma.nutritionalAssessment.findMany({
           where: {
             patientId: patient.id,
+            deletedAt: null,
           },
           include: {
             user: {
